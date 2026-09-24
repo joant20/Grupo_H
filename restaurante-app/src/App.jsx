@@ -6,6 +6,8 @@ import HomePage from "./pages/HomePage"
 import MenuPage from "./pages/MenuPage"
 import AdminProductos from "./pages/admin/AdminProductos"
 import AdminRoute from "./components/AdminRoute"
+import AdminLayout from "./components/admin/AdminLayout"
+
 
 
 function App() {
@@ -32,7 +34,17 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-         <Route path="/" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
+        <Route
+  path="/admin/productos"
+  element={
+    <AdminRoute usuario={usuario}>
+      <AdminLayout>
+        <AdminProductos />
+      </AdminLayout>
+    </AdminRoute>
+  }
+/>
+        <Route path="/" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/registro" element={<RegisterPage onRegister={handleRegister} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />

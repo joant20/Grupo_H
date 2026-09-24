@@ -37,6 +37,7 @@ function AdminProductos() {
   const [productoEditar, setProductoEditar] = useState(null)
   const [imagenArchivo, setImagenArchivo] = useState(null)
   const [imagenPreview, setImagenPreview] = useState(null)
+  const [filtroEstado, setFiltroEstado] = useState("todos")
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     resolver: standardSchemaResolver(schema),
@@ -110,7 +111,18 @@ function AdminProductos() {
       eliminarProducto(id)
     }
   }
+  const productosVisibles = productos.filter((p) => {
+    if (filtroEstado === "todos") return true
+    if (filtroEstado === "agotados") return !p.disponible
+    return p.disponible
+  })
 
+  const alternarEstado = (producto) => {
+    actualizarProducto(producto.id, {
+      ...producto,
+      disponible: !producto.disponible,
+    })
+  }
   return (
     <div className="min-h-screen bg-[#fef9f0]">
       <div className="max-w-6xl mx-auto px-4 py-8">
@@ -226,42 +238,95 @@ function AdminProductos() {
             </form>
           </div>
         )}
+         <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setFiltroEstado("todos")}
+            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
+              filtroEstado === "todos" ? "bg-orange-600 text-white" : "bg-white text-gray-600"
+            }`}
+          >
+            Todos
+          </button>
+          <button
+            onClick={() => setFiltroEstado("activos")}
+            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
+              filtroEstado === "activos" ? "bg-orange-600 text-white" : "bg-white text-gray-600"
+            }`}
+          >
+            Activos
+          </button>
+          <button
+            onClick={() => setFiltroEstado("agotados")}
+            className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
+              filtroEstado === "agotados" ? "bg-orange-600 text-white" : "bg-white text-gray-600"
+            }`}
+          >
+            Agotados
+          </button>
+        </div>
 
-        {/* Lista de productos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {productos.map((producto) => (
-            <div key={producto.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-              <img
-                src={producto.imagen || "https://via.placeholder.com/400x200?text=Sin+imagen"}
-                alt={producto.nombre}
-                className="w-full h-40 object-cover"
-              />
-              <div className="p-4">
-                <div className="flex items-start justify-between mb-2">
-                  <h3 className="font-semibold text-gray-800">{producto.nombre}</h3>
-                  <span className={`text-xs px-2 py-1 rounded-full ${producto.disponible ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}>
-                    {producto.disponible ? "Disponible" : "No disponible"}
-                  </span>
-                </div>
-                <p className="text-gray-500 text-sm mb-2">{producto.categoria}</p>
-                <p className="text-orange-600 font-bold text-lg mb-3">${producto.precio.toFixed(2)}</p>
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => handleEditar(producto)}
-                    className="flex-1 bg-blue-50 hover:bg-blue-100 text-blue-600 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    ✏️ Editar
-                  </button>
-                  <button
-                    onClick={() => handleEliminar(producto.id)}
-                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer"
-                  >
-                    🗑️ Eliminar
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+          {/* Lista de productos */}
+        <div className="overflow-x-auto bg-white rounded-xl shadow-sm border border-gray-100">
+          <table className="w-full min-w-[700px] text-left">
+            <thead className="bg-gray-50">
+              <tr className="text-sm text-gray-500">
+                <th className="px-4 py-3">Imagen</th>
+                <th className="px-4 py-3">Nombre</th>
+                <th className="px-4 py-3">Categoría</th>
+                <th className="px-4 py-3">Precio</th>
+                <th className="px-4 py-3">Estado</th>
+                <th className="px-4 py-3">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+             {productosVisibles.map((producto) => (
+                <tr key={producto.id} className="border-t border-gray-100 hover:bg-gray-50">
+                  <td className="px-4 py-4">
+                    <img
+                      src={producto.imagen || "https://via.placeholder.com/60"}
+                      alt={producto.nombre}
+                      className="w-24 h-24 object-cover rounded-lg"
+                    />
+                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-800">
+                    {producto.nombre}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500">{producto.categoria}</td>
+                  <td className="px-4 py-3 text-orange-600 font-bold">
+                    ${producto.precio.toFixed(2)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => alternarEstado(producto)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium cursor-pointer transition-colors ${
+                        producto.disponible
+                          ? "bg-green-100 text-green-700 hover:bg-green-200"
+                          : "bg-red-100 text-red-700 hover:bg-red-200"
+                      }`}
+                    >
+                      {producto.disponible ? "✅ Disponible" : "🚫 Agotado"}
+                    </button>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEditar(producto)}
+                        className="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-sm cursor-pointer"
+                      >
+                        ✏️ Editar
+                      </button>
+                      <button
+                        onClick={() => handleEliminar(producto.id)}
+                        className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm cursor-pointer"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {productos.length === 0 && (
