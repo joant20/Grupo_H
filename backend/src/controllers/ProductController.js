@@ -8,10 +8,10 @@ const crearProducto = async (req, res) => {
     if (!nombre || !descripcion || precio === undefined) {
       return res.status(400).json({ mensaje: 'Nombre, descripción y precio son obligatorios' });
     }
+    const urlImagen= req.file ? req.file.path : '';
+    // const rutaImagen = req.file ? `/uploads/${req.file.filename}` : '';
 
-    const rutaImagen = req.file ? `/uploads/${req.file.filename}` : '';
-
-    const nuevoProducto = new Product({ nombre, descripcion, precio, imagen: rutaImagen });
+    const nuevoProducto = new Product({ nombre, descripcion, precio, imagen: urlImagen });
     await nuevoProducto.save();
 
     res.status(201).json(nuevoProducto);
