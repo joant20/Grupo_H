@@ -28,18 +28,14 @@ const userSchema = new mongoose.Schema({
     timestamps:true
 }) ;
 
-// Encriptar la contraseña ANTES de guardar el documento
-userSchema.pre('save', async function (next) {
-  // Solo encripta si la contraseña es nueva o fue modificada
-  if (!this.isModified('password')) return next();
 
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
+// Encriptar la contraseña ANTES de guardar el documento
+userSchema.pre('save', async function () {
+  // Solo encripta si la contraseña es nueva o fue modificada
+  if (!this.isModified('password')) return;
+
+  const salt = await bcrypt.genSalt(10);
+  this.password = await bcrypt.hash(this.password, salt);
 });
 
 // Método para comparar contraseña al hacer login

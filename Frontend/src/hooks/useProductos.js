@@ -1,43 +1,43 @@
 import { useState, useEffect } from "react"
-import { productosIniciales } from "../Data/productosIniciales"
-
-const STORAGE_KEY = "productos"
+import * as api from "../lib/api"
 
 function useProductos() {
-  const [productos, setProductos] = useState(() => {
-    const guardados = localStorage.getItem(STORAGE_KEY)
-    return guardados ? JSON.parse(guardados) : productosIniciales
-  })
+  const [productos, setProductos] = useState([])
 
-  // Guardar en localStorage cada vez que cambien los productos
+  // Cargar productos al abrir
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(productos))
-  }, [productos])
-
-  const agregarProducto = (producto) => {
-    const nuevoProducto = {
-      ...producto,
-      id: Date.now(), // ID único basado en timestamp
+    const cargar = async () => {
+      try {
+        const res = await api.obtenerProductos()
+        setProductos(res.data)
+      } catch (error) {
+        console.log("Error cargando productos:", error)
+      }
     }
-    setProductos((prev) => [nuevoProducto, ...prev])
-    return nuevoProducto
+    cargar()
+  }, [])
+
+  const agregarProducto = async (producto) => {
+    const res = await api.crearProducto(producto)
+    setProductos([res.data, ...productos])
+    return res.data
   }
 
-  const actualizarProducto = (id, datos) => {
-    setProductos((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, ...datos } : p))
+  const actualizarProducto = async (id, datos) => {
+    const res = await api.actualizarProducto(id, datos)
+    setProductos(productos.map((p) => (p._id === id ? res.data : p)))
+    return res.data
+  }
+
+  const eliminarProducto = async (id) => {
+    await api.desactivarProducto(id)
+    setProductos(
+      productos.map((p) => (p._id === id ? { ...p, disponible: false } : p))
     )
   }
 
-  const eliminarProducto = (id) => {
-    setProductos((prev) => prev.filter((p) => p.id !== id))
-  }
+  const obtenerProducto = (id) => productos.find((p) => p._id === id)
 
-  const obtenerProducto = (id) => {
-    return productos.find((p) => p.id === id)
-  }
-
-  // Extraer categorías únicas
   const categorias = [...new Set(productos.map((p) => p.categoria))]
 
   return {

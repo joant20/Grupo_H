@@ -21,7 +21,7 @@ const productSchema = new mongoose.Schema({
         type:String,
         default: ''
     },
-    activo:{
+    disponible:{
         type:Boolean,
         default:true 
     }
