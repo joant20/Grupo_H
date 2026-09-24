@@ -17,19 +17,22 @@ function App() {
   })
 
   const handleLogin = (data) => {
-    localStorage.setItem("usuario", JSON.stringify(data))
-    setUsuario(data)
-  }
+  localStorage.setItem("usuario", JSON.stringify(data.usuario))
+  localStorage.setItem("token", data.token)     
+  setUsuario(data.usuario)
+}
 
-  const handleRegister = (data) => {
-    localStorage.setItem("usuario", JSON.stringify(data))
-    setUsuario(data)
-  }
+const handleRegister = (data) => {
+  localStorage.setItem("usuario", JSON.stringify(data.usuario))
+  localStorage.setItem("token", data.token)      
+  setUsuario(data.usuario)
+}
 
-  const handleLogout = () => {
-    localStorage.removeItem("usuario")
-    setUsuario(null)
-  }
+const handleLogout = () => {
+  localStorage.removeItem("usuario")
+  localStorage.removeItem("token")              
+  setUsuario(null)
+}
 
   return (
     <BrowserRouter>

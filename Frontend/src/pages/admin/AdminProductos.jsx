@@ -6,7 +6,7 @@ import useProductos from "../../hooks/useProductos"
 import Input from "../../components/ui/input"
 import Select from "../../components/ui/Select"
 import TextArea from "../../components/ui/TextArea"
-import FileInput from "../../components/ui/FileInput"
+
 
 const categoriasDisponibles = [
   "Entradas",
@@ -29,14 +29,14 @@ const schema = z.object({
   calorias: z.number().min(0, "No puede ser negativo").optional().or(z.nan()),
   disponible: z.boolean(),
   destacado: z.boolean(),
+  imagen: z.string().optional() 
+
 })
 
 function AdminProductos() {
   const { productos, agregarProducto, actualizarProducto, eliminarProducto } = useProductos()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [productoEditar, setProductoEditar] = useState(null)
-  const [imagenArchivo, setImagenArchivo] = useState(null)
-  const [imagenPreview, setImagenPreview] = useState(null)
   const [filtroEstado, setFiltroEstado] = useState("todos")
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
@@ -49,23 +49,21 @@ function AdminProductos() {
 
   const disponible = watch("disponible")
   const destacado = watch("destacado")
+  const imagen = watch("imagen")
 
   const onSubmit = (data) => {
     // Convertir imagen a URL si se seleccionó
-    let imagenUrl = productoEditar?.imagen || ""
-    if (imagenArchivo) {
-      imagenUrl = URL.createObjectURL(imagenArchivo)
-    }
+    
+    
 
     const productoFinal = {
       ...data,
-      imagen: imagenUrl,
       tiempoPreparacion: data.tiempoPreparacion || 0,
       calorias: data.calorias || 0,
     }
 
     if (productoEditar) {
-      actualizarProducto(productoEditar.id, productoFinal)
+      actualizarProducto(productoEditar._id, productoFinal)
     } else {
       agregarProducto(productoFinal)
     }
@@ -81,12 +79,11 @@ function AdminProductos() {
       categoria: "",
       tiempoPreparacion: "",
       calorias: "",
+      imagen: "",
       disponible: true,
       destacado: false,
     })
     setProductoEditar(null)
-    setImagenArchivo(null)
-    setImagenPreview(null)
     setMostrarFormulario(false)
   }
 
@@ -99,18 +96,18 @@ function AdminProductos() {
       categoria: producto.categoria,
       tiempoPreparacion: producto.tiempoPreparacion || "",
       calorias: producto.calorias || "",
+      imagen: producto.imagen || "",
       disponible: producto.disponible,
       destacado: producto.destacado,
     })
-    setImagenPreview(producto.imagen || null)
     setMostrarFormulario(true)
   }
 
-  const handleEliminar = (id) => {
-    if (window.confirm("¿Estás seguro de eliminar este producto?")) {
-      eliminarProducto(id)
-    }
+ const handleEliminar = async (id) => {
+  if (window.confirm("¿Estás seguro de eliminar este producto?")) {
+    await eliminarProducto(id)
   }
+}
   const productosVisibles = productos.filter((p) => {
     if (filtroEstado === "todos") return true
     if (filtroEstado === "agotados") return !p.disponible
@@ -118,7 +115,7 @@ function AdminProductos() {
   })
 
   const alternarEstado = (producto) => {
-    actualizarProducto(producto.id, {
+    actualizarProducto(producto._id, {
       ...producto,
       disponible: !producto.disponible,
     })
@@ -192,12 +189,25 @@ function AdminProductos() {
                 />
               </div>
 
-              <FileInput
-                label="Imagen del producto"
-                id="imagen"
-                onChange={(file) => setImagenArchivo(file)}
-                previewActual={imagenPreview}
-              />
+            <Input
+  label="URL de la imagen"
+  id="imagen"
+  type="url"
+  placeholder="https://ejemplo.com/pizza.jpg"
+  register={register("imagen")}
+  error={errors.imagen}
+/>
+{imagen && (
+  <div className="mb-6">
+    <p className="text-sm font-medium text-gray-600 mb-2">Vista previa:</p>
+    <img
+      src={imagen}
+      alt="Vista previa"
+      className="w-40 h-40 object-cover rounded-lg border border-gray-200"
+      onError={(e) => { e.target.style.display = "none" }}
+    />
+  </div>
+)}
 
               <div className="flex gap-6 mb-6">
                 <label className="flex items-center gap-2 cursor-pointer">
@@ -280,7 +290,7 @@ function AdminProductos() {
             </thead>
             <tbody>
              {productosVisibles.map((producto) => (
-                <tr key={producto.id} className="border-t border-gray-100 hover:bg-gray-50">
+                <tr key={producto._id} className="border-t border-gray-100 hover:bg-gray-50">
                   <td className="px-4 py-4">
                     <img
                       src={producto.imagen || "https://via.placeholder.com/60"}
@@ -316,7 +326,7 @@ function AdminProductos() {
                         ✏️ Editar
                       </button>
                       <button
-                        onClick={() => handleEliminar(producto.id)}
+                        onClick={() => handleEliminar(producto._id)}
                         className="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-lg text-sm cursor-pointer"
                       >
                         🗑️

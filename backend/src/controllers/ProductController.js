@@ -3,15 +3,14 @@ const Product = require('../models/Product');
 // POST /api/products  (solo admin)
 const crearProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio } = req.body;
+    const { nombre, descripcion, precio, disponible, imagen } = req.body;
 
     if (!nombre || !descripcion || precio === undefined) {
       return res.status(400).json({ mensaje: 'Nombre, descripción y precio son obligatorios' });
     }
-    const urlImagen= req.file ? req.file.path : '';
-    // const rutaImagen = req.file ? `/uploads/${req.file.filename}` : '';
+    const urlImagen = req.file ? req.file.path : (imagen || '');
 
-    const nuevoProducto = new Product({ nombre, descripcion, precio, imagen: urlImagen });
+    const nuevoProducto = new Product({ nombre, descripcion, precio, imagen: urlImagen, disponible });
     await nuevoProducto.save();
 
     res.status(201).json(nuevoProducto);
@@ -24,8 +23,8 @@ const crearProducto = async (req, res) => {
 const listarProductos = async (req, res) => {
   try {
     const filtro = {};
-    if (req.query.activo !== undefined) {
-      filtro.activo = req.query.activo === 'true';
+    if (req.query.disponible !== undefined) {
+      filtro.disponible = req.query.disponible === 'true';
     }
 
     const productos = await Product.find(filtro).sort({ createdAt: -1 });
@@ -52,11 +51,11 @@ const obtenerProducto = async (req, res) => {
 // PUT /api/products/:id  (solo admin)
 const actualizarProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio } = req.body;
-    const camposActualizados = { nombre, descripcion, precio };
+    const { nombre, descripcion, precio, disponible, imagen } = req.body;
+    const camposActualizados = { nombre, descripcion, precio, disponible, imagen };
 
     if (req.file) {
-      camposActualizados.imagen = `/uploads/${req.file.filename}`;
+      camposActualizados.imagen = req.file.path;
     }
 
     const producto = await Product.findByIdAndUpdate(
@@ -79,7 +78,7 @@ const actualizarProducto = async (req, res) => {
 const desactivarProducto = async (req, res) => {
   try {
     const producto = await Product.findByIdAndUpdate(
-      req.params.id, { activo: false }, { new: true }
+      req.params.id, { disponible: false }, { new: true }
     );
 
     if (!producto) return res.status(404).json({ mensaje: 'Producto no encontrado' });

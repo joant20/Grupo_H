@@ -1,4 +1,4 @@
-function Input({ label, id, type = "text", register, error }) {
+function Input({ label, id, type = "text", register, error, placeholder }) {
   return (
     <div className="mb-4">
       <label htmlFor={id} className="block text-sm font-medium text-gray-600 mb-1">
@@ -8,6 +8,7 @@ function Input({ label, id, type = "text", register, error }) {
         id={id}
         type={type}
         {...register}
+        placeholder={placeholder}
         className="w-full px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
       />
       {error && (

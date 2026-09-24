@@ -27,15 +27,17 @@ function RegisterPage({ onRegister }) {
   })
 
   const onSubmit = async (data) => {
-    try {
-      const respuesta = await registrarUsuario(data)
-      console.log("Registro exitoso:", respuesta.data)
-      onRegister(respuesta.data)
-      navigate("/")
-    } catch (error) {
-      console.error("Error al registrar:", error.response?.data?.mensaje || "Error del servidor")
-    }
+  try {
+    const respuesta = await registrarUsuario(data)
+    console.log("Registro exitoso:", respuesta.data)
+    onRegister(respuesta.data)
+    alert("✅ Cuenta creada correctamente")
+    navigate("/")
+  } catch (error) {
+    console.error("Error al registrar:", error.response?.data?.mensaje || "Error del servidor")
+    alert("❌ " + (error.response?.data?.mensaje || "Error al crear la cuenta"))
   }
+}
 
   return (
     <div className="min-h-screen bg-[#fef9f0] flex items-center justify-center px-4">
