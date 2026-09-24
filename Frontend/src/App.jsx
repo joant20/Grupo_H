@@ -49,14 +49,6 @@ function App() {
         <Route path="/registro" element={<RegisterPage onRegister={handleRegister} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/menu" element={<MenuPage usuario={usuario} onLogout={handleLogout} />} />
-        <Route
-          path="/admin/productos"
-          element={
-            <AdminRoute usuario={usuario}>
-              <AdminProductos />
-            </AdminRoute>
-          }
-        />
       </Routes>
     </BrowserRouter>
   )
