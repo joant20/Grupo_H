@@ -6,8 +6,8 @@ dist/
 dist-ssr/
 
 # Backend
-Backend/node_modules/
-Backend/.env
+backend/node_modules/
+backend/.env
 
 
 tatus*
