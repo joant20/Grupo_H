@@ -6,10 +6,5 @@ dist/
 dist-ssr/
 
 # Backend
-backend/node_modules/
-backend/.env
-
-
-tatus*
-api_restaurante/node_modules/
-api_restaurante/.env
+Backend/node_modules/
+Backend/.env
