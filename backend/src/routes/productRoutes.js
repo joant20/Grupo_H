@@ -13,12 +13,12 @@ const verificarToken = require('../middlewares/authMiddleware');
 const soloAdmin = require('../middlewares/soloAdmin');
 const upload = require('../middlewares/uploadMiddleware'); // el de multer que ya armamos
 
-// Todas las rutas requieren estar autenticado (verificarToken)
-// Las de escritura además requieren ser admin (soloAdmin)
+// Las rutas GET son públicas: cualquiera puede ver el catálogo sin loguearse
+// Las de escritura requieren estar autenticado (verificarToken) y ser admin (soloAdmin)
 
 router.post('/', verificarToken, soloAdmin, crearProducto);
-router.get('/', verificarToken, listarProductos);
-router.get('/:id', verificarToken, obtenerProducto);
+router.get('/', listarProductos);
+router.get('/:id', obtenerProducto);
 router.put('/:id', verificarToken, soloAdmin, actualizarProducto);
 router.patch('/:id/desactivar', verificarToken, soloAdmin, desactivarProducto);
 

@@ -1,5 +1,7 @@
 import { Link } from "react-router-dom"
 
+//este componente es de cuando el admin se loguea le presente la opciones de ver el sitio y volver al inicio, ademas de mostrarle el logo de la app y un titulo que diga panel admin
+
 function AdminLayout({ children }) {
   return (
     <div className="min-h-screen bg-[#fef9f0]">
