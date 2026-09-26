@@ -3,13 +3,14 @@ const Product = require('../models/Product');
 // POST /api/products  (solo admin)
 const crearProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio, disponible, imagen } = req.body;
+    const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado } = req.body;
 
     if (!nombre || !descripcion || precio === undefined) {
       return res.status(400).json({ mensaje: 'Nombre, descripción y precio son obligatorios' });
     }
+    const urlImagen = req.file ? req.file.path : (imagen || '');
 
-   const nuevoProducto = new Product({ nombre, descripcion, precio, imagen: imagen || "", disponible });
+    const nuevoProducto = new Product({ nombre, descripcion, precio, imagen: urlImagen,categoria,tiempoPreparacion,calorias,destacado, disponible });
     await nuevoProducto.save();
 
     res.status(201).json(nuevoProducto);
@@ -50,8 +51,13 @@ const obtenerProducto = async (req, res) => {
 // PUT /api/products/:id  (solo admin)
 const actualizarProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio, disponible, imagen } = req.body;
-    const camposActualizados = { nombre, descripcion, precio, disponible, imagen };
+    const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado } = req.body;
+    const camposActualizados = { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado };
+    
+
+    if (req.file) {
+      camposActualizados.imagen = req.file.path;
+    }
 
     const producto = await Product.findByIdAndUpdate(
       req.params.id,

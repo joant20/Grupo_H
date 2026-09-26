@@ -21,6 +21,22 @@ const productSchema = new mongoose.Schema({
         type:String,
         default: ''
     },
+    categoria: {
+    type: String,
+    default: ""
+    },
+    tiempoPreparacion: {
+        type: Number,
+        default: 0
+    },
+    calorias: {
+        type: Number,
+        default: 0
+    },
+    destacado: {
+        type: Boolean,
+        default: false
+    },
     disponible:{
         type:Boolean,
         default:true 
