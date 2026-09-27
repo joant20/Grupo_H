@@ -109,9 +109,9 @@ function AdminProductos() {
   }
 }
   const productosVisibles = productos.filter((p) => {
-    if (filtroEstado === "todos") return true
     if (filtroEstado === "agotados") return !p.disponible
-    return p.disponible
+    if (filtroEstado === "activos") return p.disponible
+    return true
   })
 
   const alternarEstado = (producto) => {

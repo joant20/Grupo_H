@@ -1,5 +1,4 @@
 import { Navigate } from "react-router-dom"
-import { adminEmails } from "../Data/adminEmails"
 
 function AdminRoute({ usuario, children }) {
   // No hay usuario logueado
@@ -8,7 +7,7 @@ function AdminRoute({ usuario, children }) {
   }
 
   // El email no está en la lista de admins
-  if (!adminEmails.includes(usuario.email)) {
+  if (usuario.rol !== "admin") {
     return (
       <div className="min-h-screen bg-[#fef9f0] flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-8 shadow-xl text-center max-w-md">

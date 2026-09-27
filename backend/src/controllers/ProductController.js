@@ -3,7 +3,7 @@ const Product = require('../models/Product');
 // POST /api/products  (solo admin)
 const crearProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado } = req.body;
+    const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible } = req.body;
 
     if (!nombre || !descripcion || precio === undefined) {
       return res.status(400).json({ mensaje: 'Nombre, descripción y precio son obligatorios' });
@@ -51,8 +51,8 @@ const obtenerProducto = async (req, res) => {
 // PUT /api/products/:id  (solo admin)
 const actualizarProducto = async (req, res) => {
   try {
-    const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado } = req.body;
-    const camposActualizados = { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado };
+    const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible } = req.body;
+    const camposActualizados = { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible };
     
 
     if (req.file) {

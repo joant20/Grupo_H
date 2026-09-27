@@ -18,23 +18,41 @@ function useProductos() {
   }, [])
 
   const agregarProducto = async (producto) => {
-    const res = await api.crearProducto(producto)
-    setProductos([res.data, ...productos])
-    return res.data
+    try {
+      const res = await api.crearProducto(producto)
+      setProductos([res.data, ...productos])
+      alert("Producto creado") 
+      return res.data
+    } catch (error) {
+      alert("No se pudo agregar el producto: " + (error.response?.data?.mensaje || "error del servidor"))
+      throw error
+    } 
+
   }
 
   const actualizarProducto = async (id, datos) => {
-    const res = await api.actualizarProducto(id, datos)
-    setProductos(productos.map((p) => (p._id === id ? res.data : p)))
-    return res.data
+    try {
+      const res = await api.actualizarProducto(id, datos)
+      setProductos(productos.map((p) => (p._id === id ? res.data : p)))
+      alert("Producto actualizado")      
+      return res.data
+      
+    } catch (error) {
+      alert("No se pudo actualizar el producto: " + (error.response?.data?.mensaje || "error del servidor"))
+      throw error
+    }
   }
 
   const eliminarProducto = async (id) => {
+  try {
+    alert("Producto Eliminado") 
     await api.desactivarProducto(id)
-    setProductos(
-      productos.map((p) => (p._id === id ? { ...p, disponible: false } : p))
-    )
+    setProductos(productos.map((p) => (p._id === id ? { ...p, disponible: false } : p)))
+  } catch (error) {
+    alert("No se pudo eliminar: " + (error.response?.data?.mensaje || "error del servidor"))
+    throw error
   }
+}
 
   const obtenerProducto = (id) => productos.find((p) => p._id === id)
 

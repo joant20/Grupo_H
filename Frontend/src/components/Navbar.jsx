@@ -1,8 +1,8 @@
 import { Link } from "react-router-dom"
-import { adminEmails } from "../Data/adminEmails"
+
 
 function Navbar({ usuario, onLogout }) {
-  const esAdmin = usuario && adminEmails.includes(usuario.email)
+  const esAdmin = usuario && usuario.rol === "admin"
   return (
  <nav className="bg-white shadow-md px-6 py-4 flex items-center justify-between">
       <div className="flex items-center gap-2">
