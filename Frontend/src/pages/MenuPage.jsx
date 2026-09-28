@@ -2,11 +2,13 @@ import { useState } from "react"
 import useProductos from "../hooks/useProductos"
 import ProductoCard from "../components/ProductoCard"
 import Navbar from "../components/Navbar"
+import ProductoDetalle from "../components/ProductoDetalle"
 
 function MenuPage({ usuario, onLogout }) {
   const { productos, categorias } = useProductos()
   const [busqueda, setBusqueda] = useState("")
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todos")
+  const [productoSeleccionado, setProductoSeleccionado] = useState(null)
 
   // Filtrar productos
   const productosFiltrados = productos.filter((producto) => {
@@ -16,6 +18,14 @@ function MenuPage({ usuario, onLogout }) {
     const estaDisponible = producto.disponible
     return coincideBusqueda && coincideCategoria && estaDisponible
   })
+  
+  const secciones = categorias.map((cat) => ({
+    categoria: cat,
+    productos: productosFiltrados.filter((p) => p.categoria === cat),
+  })).filter((s) => s.productos.length > 0)
+
+  // Productos que no tienen categoría → van en "Otros"
+  const sinCategoria = productosFiltrados.filter((p) => !p.categoria)
 
   const handleAgregarCarrito = (producto) => {
     alert(`"${producto.nombre}" agregado al carrito (funcionalidad próximamente)`)
@@ -66,21 +76,56 @@ function MenuPage({ usuario, onLogout }) {
           ))}
         </div>
 
-        {/* Grid de productos */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {productosFiltrados.map((producto) => (
-            <ProductoCard
-              key={producto.id}
-              producto={producto}
-              onAgregar={handleAgregarCarrito}
-            />
-          ))}
-        </div>
+         {/* Secciones por categoría */}
+        {secciones.map((seccion) => (
+          <section key={seccion.categoria} className="mb-10">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">
+              {seccion.categoria}
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {seccion.productos.map((producto) => (
+                <ProductoCard
+                  key={producto._id}
+                  producto={producto}
+                  onAgregar={handleAgregarCarrito}
+                  onSeleccionar={setProductoSeleccionado}
+                />
+              ))}
+            </div>
+          </section>
+        ))}
 
-        {productosFiltrados.length === 0 && (
+        {/* Sección para los que no tienen categoría */}
+        {sinCategoria.length > 0 && (
+          <section className="mb-10">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Otros</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {sinCategoria.map((producto) => (
+                <ProductoCard
+                  key={producto._id}
+                  producto={producto}
+                  onAgregar={handleAgregarCarrito}
+                  onSeleccionar={setProductoSeleccionado}
+                />
+              ))}
+            </div>
+          </section>
+        )}
+      
+        {secciones.length === 0 && sinCategoria.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">No se encontraron productos</p>
           </div>
+        )}
+        {productoSeleccionado && (
+          <ProductoDetalle
+            producto={productoSeleccionado}
+            onCerrar={() => setProductoSeleccionado(null)}
+            onAgregar={(p) => {
+              handleAgregarCarrito(p)
+              setProductoSeleccionado(null)
+            }}
+          />
         )}
       </div>
     </div>

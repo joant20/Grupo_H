@@ -8,3 +8,23 @@ dist-ssr/
 # Backend
 Backend/node_modules/
 Backend/.env
+
+# -----------------------------------------------
+# LOGS (out.log, err.log, backend.log, etc.)
+#
+# Son archivos que el servidor crea solo para guardarte
+# lo que imprimió en la terminal:
+#   - out.log  = todo lo que salió BIEN
+#   - err.log  = los ERRORES (aquí miras cuando algo falla)
+#
+# NO se suben a GitHub porque:
+#   1. Son desechables: se vuelven a crear solos cada
+#      vez que corres el servidor, no aportan nada.
+#   2. Si trabajas en equipo, cada quien tendría el suyo
+#      y entrarían en conflicto todo el tiempo.
+#   3. A veces imprimen datos sensibles (rutas de la base
+#      de datos, IP, etc.) y eso no debe quedar publicado.
+#
+# Generarlos en local:  node src/server.js > out.log 2> err.log
+# -----------------------------------------------
+*.log

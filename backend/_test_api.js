@@ -6,8 +6,9 @@ const j = async (met, url, body, token) => {
   const headers = { 'Content-Type': 'application/json' };
   if (token) headers.Authorization = `Bearer ${token}`;
   const r = await fetch(BASE + url, { method: met, headers, body: body ? JSON.stringify(body) : undefined });
-  let data = null;
-  try { data = await r.json(); } catch { data = await r.text(); }
+  const texto = await r.text();
+  let data = texto;
+  try { data = JSON.parse(texto); } catch { /* respuesta en texto plano */ }
   return { status: r.status, data };
 };
 

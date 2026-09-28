@@ -1,6 +1,9 @@
-function ProductoCard({ producto, onAgregar }) {
+function ProductoCard({ producto, onAgregar, onSeleccionar }) {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
+   <div
+      onClick={() => onSeleccionar && onSeleccionar(producto)}
+      className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+    >
       <div className="relative">
         <img
           src={producto.imagen || "https://via.placeholder.com/400x300?text=Sin+imagen"}
@@ -25,7 +28,7 @@ function ProductoCard({ producto, onAgregar }) {
           <span className="text-orange-600 font-bold text-lg">${producto.precio.toFixed(2)}</span>
           {producto.disponible && onAgregar && (
             <button
-              onClick={() => onAgregar(producto)}
+              onClick={(e) => { e.stopPropagation(); onAgregar(producto) }}
               className="bg-orange-600 hover:bg-orange-500 text-white px-3 py-1 rounded-lg text-sm font-medium transition-colors cursor-pointer"
             >
               🛒 Agregar
