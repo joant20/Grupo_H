@@ -17,6 +17,9 @@ function Navbar({ usuario, onLogout }) {
         <Link to="/home" className="text-gray-700 hover:text-orange-600 font-medium">
           Home
         </Link>
+        <Link to="/carrito" className="text-gray-700 hover:text-orange-600 font-medium" aria-label="Ver carrito">
+  🛒
+</Link>
         {usuario ? (
           <>
           {esAdmin && (
