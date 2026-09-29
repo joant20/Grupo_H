@@ -1,4 +1,6 @@
 // 1- Para el archivo .env y que funcione al llamar las claves 
+
+require('../dns-config');
 require('dotenv').config()
 
 // 2- Conectar con la el archivo app.js
