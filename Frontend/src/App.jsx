@@ -7,6 +7,8 @@ import MenuPage from "./pages/MenuPage"
 import AdminProductos from "./pages/admin/AdminProductos"
 import AdminRoute from "./components/AdminRoute"
 import AdminLayout from "./components/admin/AdminLayout"
+import { CarritoProvider } from "./context/CarritoProvider"
+import CarritoPage from "./pages/CarritoPage"
 
 
 
@@ -35,11 +37,12 @@ const handleLogout = () => {
 }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route
-  path="/admin/productos"
-  element={
+    <CarritoProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route
+    path="/admin/productos"
+    element={
     <AdminRoute usuario={usuario}>
       <AdminLayout>
         <AdminProductos />
@@ -51,9 +54,11 @@ const handleLogout = () => {
         <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
         <Route path="/registro" element={<RegisterPage onRegister={handleRegister} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
+        <Route path="/carrito" element={<CarritoPage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/menu" element={<MenuPage usuario={usuario} onLogout={handleLogout} />} />
       </Routes>
     </BrowserRouter>
+    </CarritoProvider>
   )
 }
 

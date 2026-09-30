@@ -3,11 +3,13 @@ import useProductos from "../hooks/useProductos"
 import ProductoCard from "../components/ProductoCard"
 import Navbar from "../components/Navbar"
 import ProductoDetalle from "../components/ProductoDetalle"
+import { useCarrito } from "../hooks/useCarrito"
 
 function MenuPage({ usuario, onLogout }) {
   const { productos, categorias } = useProductos()
   const [busqueda, setBusqueda] = useState("")
   const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todos")
+  const { agregarAlCarrito } = useCarrito()
   const [productoSeleccionado, setProductoSeleccionado] = useState(null)
 
   // Filtrar productos
@@ -15,8 +17,7 @@ function MenuPage({ usuario, onLogout }) {
     const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       producto.descripcion?.toLowerCase().includes(busqueda.toLowerCase())
     const coincideCategoria = categoriaSeleccionada === "Todos" || producto.categoria === categoriaSeleccionada
-    const estaDisponible = producto.disponible
-    return coincideBusqueda && coincideCategoria && estaDisponible
+    return coincideBusqueda && coincideCategoria
   })
   
   const secciones = categorias.map((cat) => ({
@@ -27,10 +28,13 @@ function MenuPage({ usuario, onLogout }) {
   // Productos que no tienen categoría → van en "Otros"
   const sinCategoria = productosFiltrados.filter((p) => !p.categoria)
 
-  const handleAgregarCarrito = (producto) => {
-    alert(`"${producto.nombre}" agregado al carrito (funcionalidad próximamente)`)
+    const handleAgregarCarrito = (producto) => {
+  const seAgrego = agregarAlCarrito(producto)
+  if (!seAgrego) {
+    alert(`🚫 "${producto.nombre}" está agotado y no se puede agregar`)
   }
 
+  }
   return (
     <div className="min-h-screen bg-[#fef9f0]">
       <Navbar usuario={usuario} onLogout={onLogout} />
