@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar"
 import { useCarrito } from "../hooks/useCarrito"
 
 function CarritoPage({ usuario, onLogout }) {
-  const { carrito, quitarItem, actualizarCantidad, totalCarrito } = useCarrito()
+  const { carrito, quitarItem, actualizarCantidad, totalCarrito, vaciarCarrito } = useCarrito()
 
   if (carrito.length === 0) {
     return (
@@ -94,6 +94,16 @@ function CarritoPage({ usuario, onLogout }) {
           >
             Seguir comprando
           </Link>
+          <button
+  onClick={() => {
+    if (window.confirm("¿Seguro que quieres vaciar todo el carrito?")) {
+      vaciarCarrito()
+    }
+  }}
+  className="w-full text-center bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-lg font-medium mt-3 cursor-pointer"
+>
+  🗑 Vaciar carrito
+</button>
         </div>
       </div>
     </div>

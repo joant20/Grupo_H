@@ -17,8 +17,7 @@ function MenuPage({ usuario, onLogout }) {
     const coincideBusqueda = producto.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
       producto.descripcion?.toLowerCase().includes(busqueda.toLowerCase())
     const coincideCategoria = categoriaSeleccionada === "Todos" || producto.categoria === categoriaSeleccionada
-    const estaDisponible = producto.disponible
-    return coincideBusqueda && coincideCategoria && estaDisponible
+    return coincideBusqueda && coincideCategoria
   })
   
   const secciones = categorias.map((cat) => ({
@@ -29,8 +28,12 @@ function MenuPage({ usuario, onLogout }) {
   // Productos que no tienen categoría → van en "Otros"
   const sinCategoria = productosFiltrados.filter((p) => !p.categoria)
 
-  const handleAgregarCarrito = (producto) => {
-  agregarAlCarrito(producto)
+    const handleAgregarCarrito = (producto) => {
+  const seAgrego = agregarAlCarrito(producto)
+  if (!seAgrego) {
+    alert(`🚫 "${producto.nombre}" está agotado y no se puede agregar`)
+  }
+
   }
   return (
     <div className="min-h-screen bg-[#fef9f0]">

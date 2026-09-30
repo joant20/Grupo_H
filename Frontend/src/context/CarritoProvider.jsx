@@ -1,3 +1,23 @@
+/**
+ * PROVEEDOR DEL CARRITO (dueño del estado)
+ *
+ * Función: guardar y manipular el estado del carrito de compras,
+ * y compartirlo con toda la aplicación a través del CarritoContext.
+ *
+ * Qué expone a través del value:
+ *  - carrito.................: array de productos agregados
+ *  - agregarAlCarrito........: agrega un producto o suma 1 si ya existe
+ *  - quitarItem..............: elimina un producto del carrito
+ *  - actualizarCantidad......: cambia la cantidad (lo borra si llega a 0)
+ *  - totalCarrito............: suma de precio × cantidad (para el checkout)
+ *  - cantidadItems...........: total de unidades (para el badge del Navbar)
+ *
+ * Persistencia: guarda el carrito en localStorage con la clave "carrito_v1"
+ * para que no se pierda al recargar la página.
+ *
+ * Importante: este Provider debe envolver toda la app (ver App.jsx línea 40),
+ * de lo contrario useCarrito() lanzará un error.
+ */
 import {  useState, useEffect } from "react"
 import {CarritoContext} from "./CarritoContext"
 
@@ -21,6 +41,11 @@ export function CarritoProvider({ children }) {
     localStorage.setItem(CLAVE_STORAGE, JSON.stringify(carrito))
   }, [carrito])
    const agregarAlCarrito = (producto) => {
+     if (!producto.disponible) {
+    console.warn(`🚫 "${producto.nombre}" está agotado`)
+    return false
+  }
+
     setCarrito((prev) => {
       const existe = prev.find((p) => p._id === producto._id)
       if (existe) {
@@ -30,6 +55,7 @@ export function CarritoProvider({ children }) {
       }
       return [...prev, { ...producto, cantidad: 1 }]
     })
+    return true
   }
 
   const quitarItem = (id) => {
@@ -43,6 +69,9 @@ export function CarritoProvider({ children }) {
         .filter((p) => p.cantidad > 0)
     )
   }
+   const vaciarCarrito = () => {
+  setCarrito([])
+ }
 
   const totalCarrito = carrito.reduce(
     (acum, p) => acum + p.precio * p.cantidad,
@@ -52,7 +81,7 @@ export function CarritoProvider({ children }) {
   const cantidadItems = carrito.reduce((acum, p) => acum + p.cantidad, 0)
 
   return (
-    <CarritoContext.Provider value={{ carrito, agregarAlCarrito, quitarItem, actualizarCantidad, totalCarrito, cantidadItems }}>
+    <CarritoContext.Provider value={{ carrito, agregarAlCarrito, quitarItem, actualizarCantidad, totalCarrito,  cantidadItems, vaciarCarrito }}>
       {children}
     </CarritoContext.Provider>
   )
