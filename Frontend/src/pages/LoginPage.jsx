@@ -4,27 +4,33 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { useNavigate } from "react-router-dom"
 import Input from "../components/ui/input"
 import Button from "../components/ui/Button"
+import FloatingMenu from "../components/FloatingMenu"
 import { loginUsuario } from "../lib/api"
+import { useState } from "react"
 
 const schema = z.object({
   email: z.string().email("Ingresa un email válido"),
   password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
 })
-
-function LoginPage({ onLogin }) {
+function LoginPage({ onLogin, usuario, onLogout }) {
   const navigate = useNavigate()
+  const [error, setError] = useState(null)
+
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: standardSchemaResolver(schema),
   })
 
   const onSubmit = async (data) => {
+    setError(null)
     try {
       const respuesta = await loginUsuario(data)
-      console.log("Login exitoso:", respuesta.data)
       onLogin(respuesta.data)
       navigate("/")
-    } catch (error) {
-      console.error("Error al login:", error.response?.data?.mensaje || "Error del servidor")
+    } catch (err) {
+      console.error("Error al login:", err)
+      setError(
+        err.response?.data?.mensaje || "No se pudo conectar con el servidor. Revisa que el backend esté activo."
+      )
     }
   }
 
@@ -37,6 +43,14 @@ function LoginPage({ onLogin }) {
         <p className="text-gray-500 text-center mb-6">
           Bienvenido de vuelta, ordena tu comida favorita
         </p>
+
+        {error && (
+          <div className="mb-4 bg-red-50 border border-red-200 text-red-600 text-sm rounded-lg px-4 py-3">
+            ⚠️ {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit(onSubmit)}></form>
 
         <form onSubmit={handleSubmit(onSubmit)}>
           <Input
@@ -66,6 +80,8 @@ function LoginPage({ onLogin }) {
           </a>
         </p>
       </div>
+
+      <FloatingMenu usuario={usuario} onLogout={onLogout} />
     </div>
   )
 }

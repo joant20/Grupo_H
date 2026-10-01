@@ -4,6 +4,7 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import { useNavigate } from "react-router-dom"
 import Input from "../components/ui/input"
 import Button from "../components/ui/Button"
+import FloatingMenu from "../components/FloatingMenu"
 import { registrarUsuario } from "../lib/api"
 
 const schema = z.object({
@@ -20,7 +21,7 @@ const schema = z.object({
   path: ["confirmPassword"],
 })
 
-function RegisterPage({ onRegister }) {
+function RegisterPage({ onRegister, usuario, onLogout }) {
   const navigate = useNavigate()
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: standardSchemaResolver(schema),
@@ -116,6 +117,8 @@ function RegisterPage({ onRegister }) {
           </a>
         </p>
       </div>
+
+      <FloatingMenu usuario={usuario} onLogout={onLogout} />
     </div>
   )
 }

@@ -3,7 +3,7 @@ import Navbar from "../components/Navbar"
 import { useCarrito } from "../hooks/useCarrito"
 
 function CarritoPage({ usuario, onLogout }) {
-  const { carrito, quitarItem, actualizarCantidad, totalCarrito, vaciarCarrito } = useCarrito()
+  const { carrito, quitarItem, actualizarCantidad, totalCarrito, vaciarCarrito, cantidadItems } = useCarrito()
 
   if (carrito.length === 0) {
     return (
@@ -80,7 +80,21 @@ function CarritoPage({ usuario, onLogout }) {
             </div>
           ))}
         </div>
-         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+          <h2 className="text-lg font-bold text-gray-800 mb-4">Resumen</h2>
+
+          <div className="flex justify-between text-gray-600 mb-2">
+            <span>Subtotal ({cantidadItems} productos)</span>
+            <span>${totalCarrito.toFixed(2)}</span>
+          </div>
+
+          <div className="flex justify-between text-gray-600 mb-4">
+            <span>Envío</span>
+            <span className="text-green-600 font-medium">Gratis</span>
+          </div>
+
+          <hr className="mb-4" />
+
           <div className="flex justify-between items-center mb-4">
             <span className="text-lg font-bold text-gray-800">Total</span>
             <span className="text-2xl font-bold text-orange-600">
@@ -89,24 +103,32 @@ function CarritoPage({ usuario, onLogout }) {
           </div>
 
           <Link
+            to="/checkout"
+            className="block w-full text-center bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-medium"
+          >
+            Continuar
+          </Link>
+
+          <Link
             to="/menu"
-            className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium"
+            className="block w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-lg font-medium mt-3"
           >
             Seguir comprando
           </Link>
+
           <button
-  onClick={() => {
-    if (window.confirm("¿Seguro que quieres vaciar todo el carrito?")) {
-      vaciarCarrito()
-    }
-  }}
-  className="w-full text-center bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-lg font-medium mt-3 cursor-pointer"
->
-  🗑 Vaciar carrito
-</button>
+            onClick={() => {
+              if (window.confirm("¿Seguro que quieres vaciar todo el carrito?")) {
+                vaciarCarrito()
+              }
+            }}
+            className="w-full text-center bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-lg font-medium mt-3 cursor-pointer"
+          >
+            🗑 Vaciar carrito
+          </button>
+        </div>
         </div>
       </div>
-    </div>
   )
 }
 

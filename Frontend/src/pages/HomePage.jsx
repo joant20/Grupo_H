@@ -1,5 +1,6 @@
 import Navbar from "../components/Navbar"
 import PedidoCard from "../components/PedidoCard"
+import Footer from "../components/Footer"
 
 const pedidosRecientes = [
   {
@@ -24,10 +25,10 @@ const pedidosRecientes = [
 
 function HomePage({ usuario, onLogout }) {
   return (
-    <div className="min-h-screen bg-[#fef9f0]">
+    <div className="min-h-screen bg-[#fef9f0] flex flex-col">
       <Navbar usuario={usuario} onLogout={onLogout} />
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 py-8 flex-1 w-full">
         <h2 className="text-xl font-bold text-gray-800 mb-6">
           ¡Bienvenido, {usuario?.nombre || "Usuario"}! 👋
         </h2>
@@ -74,6 +75,8 @@ function HomePage({ usuario, onLogout }) {
           </div>
         </div>
       </div>
+
+      <Footer usuario={usuario} onLogout={onLogout} />
     </div>
   )
 }

@@ -9,6 +9,7 @@ import AdminRoute from "./components/AdminRoute"
 import AdminLayout from "./components/admin/AdminLayout"
 import { CarritoProvider } from "./context/CarritoProvider"
 import CarritoPage from "./pages/CarritoPage"
+import CheckoutPage from "./pages/CheckoutPage"
 
 
 
@@ -51,10 +52,11 @@ const handleLogout = () => {
   }
 />
         <Route path="/" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
-        <Route path="/login" element={<LoginPage onLogin={handleLogin} />} />
-        <Route path="/registro" element={<RegisterPage onRegister={handleRegister} />} />
+        <Route path="/login" element={<LoginPage onLogin={handleLogin} usuario={usuario} onLogout={handleLogout} />} />
+        <Route path="/registro" element={<RegisterPage onRegister={handleRegister} usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/carrito" element={<CarritoPage usuario={usuario} onLogout={handleLogout} />} />
+        <Route path="/checkout" element={<CheckoutPage usuario={usuario} onLogout={handleLogout} />} />   
         <Route path="/menu" element={<MenuPage usuario={usuario} onLogout={handleLogout} />} />
       </Routes>
     </BrowserRouter>
