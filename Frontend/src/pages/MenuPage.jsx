@@ -40,7 +40,12 @@ function MenuPage({ usuario, onLogout }) {
       <Navbar usuario={usuario} onLogout={onLogout} />
 
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Nuestro Menú</h1>
+        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
+          Nuestro Menú
+        </h1>
+        <p className="text-gray-500 text-sm mt-1 mb-6">
+          Elige tu favorito y agrégalo al carrito 🍕
+        </p>
 
         {/* Barra de búsqueda */}
         <div className="mb-6">
@@ -49,7 +54,7 @@ function MenuPage({ usuario, onLogout }) {
             placeholder="🔍 Buscar producto..."
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-full md:w-96 px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500"
+            className="w-full md:w-96 px-5 py-2.5 bg-white border border-gray-200 rounded-full text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-orange-500/40 focus:border-orange-400 focus:shadow-md focus:shadow-orange-500/10 transition-all"
           />
         </div>
 
@@ -57,10 +62,10 @@ function MenuPage({ usuario, onLogout }) {
         <div className="flex flex-wrap gap-2 mb-8">
           <button
             onClick={() => setCategoriaSeleccionada("Todos")}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
               categoriaSeleccionada === "Todos"
-                ? "bg-orange-600 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-100"
+                ? "bg-orange-600 text-white shadow-md shadow-orange-600/30 scale-105"
+                : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 hover:scale-105"
             }`}
           >
             Todos
@@ -69,10 +74,10 @@ function MenuPage({ usuario, onLogout }) {
             <button
               key={cat}
               onClick={() => setCategoriaSeleccionada(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer ${
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${
                 categoriaSeleccionada === cat
-                  ? "bg-orange-600 text-white"
-                  : "bg-white text-gray-600 hover:bg-gray-100"
+                  ? "bg-orange-600 text-white shadow-md shadow-orange-600/30 scale-105"
+                  : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-100 hover:scale-105"
               }`}
             >
               {cat}
@@ -83,7 +88,8 @@ function MenuPage({ usuario, onLogout }) {
          {/* Secciones por categoría */}
         {secciones.map((seccion) => (
           <section key={seccion.categoria} className="mb-10">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">
+            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-gradient-to-b from-orange-500 to-orange-600 rounded-full" />
               {seccion.categoria}
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -102,7 +108,10 @@ function MenuPage({ usuario, onLogout }) {
         {/* Sección para los que no tienen categoría */}
         {sinCategoria.length > 0 && (
           <section className="mb-10">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Otros</h2>
+            <h2 className="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+              <span className="w-1.5 h-6 bg-gradient-to-b from-orange-500 to-orange-600 rounded-full" />
+              Otros
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {sinCategoria.map((producto) => (
                 <ProductoCard
