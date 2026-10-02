@@ -24,14 +24,14 @@ import { Link, NavLink } from "react-router-dom"
 import { useCarrito } from "../hooks/useCarrito"
 
 const claseLink = ({ isActive }) =>
-  `px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+  `relative px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 active:scale-95 after:absolute after:left-3 after:right-3 after:bottom-1 after:h-0.5 after:bg-white after:rounded-full after:origin-left after:scale-x-0 hover:after:scale-x-100 after:transition-transform after:duration-300 ${
     isActive
-      ? "bg-white/25 text-white"
+      ? "bg-white/25 text-white shadow-sm shadow-black/10 after:scale-x-100"
       : "text-white/90 hover:text-white hover:bg-white/15"
   }`
 
 const claseLinkMovil = ({ isActive }) =>
-  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:translate-x-1 ${
     isActive
       ? "bg-orange-600 text-white"
       : "text-gray-700 hover:text-orange-600 hover:bg-orange-50"
@@ -40,7 +40,7 @@ const claseLinkMovil = ({ isActive }) =>
 function BadgeCarrito({ cantidadItems }) {
   if (!cantidadItems) return null
   return (
-    <span className="absolute -top-2 -right-2 bg-white text-orange-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow">
+    <span className="absolute -top-2 -right-2 bg-white text-orange-600 text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center shadow animate-pop">
       {cantidadItems}
     </span>
   )
@@ -58,39 +58,34 @@ function Navbar({ usuario, onLogout }) {
           menuMovilAbierto ? "rounded-3xl" : "rounded-3xl sm:rounded-full"
         } px-4 md:px-6 py-3 sm:py-2.5`}
       >
-      <div className="flex items-center justify-between">
-        <Link to="/home" className="flex items-center gap-2">
-          <span className="text-2xl">🍕</span>
+      <div className="relative flex items-center justify-between">
+        <Link to="/home" className="flex items-center gap-2 group">
+          <span className="text-2xl transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110">
+            🍕
+          </span>
           <h1 className="text-xl font-bold text-white">FoodApp</h1>
         </Link>
 
-        {/* Escritorio: enlaces en fila */}
-        <div className="hidden md:flex items-center gap-1">
+        {/* Centro: cápsula glass con los enlaces (escritorio) */}
+        <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 bg-white/10 ring-1 ring-white/20 backdrop-blur-sm rounded-full px-2 py-1">
           <NavLink to="/home" className={claseLink}>
             Home
           </NavLink>
           <NavLink to="/menu" className={claseLink}>
             Menú
           </NavLink>
-          <NavLink
-            to="/carrito"
-            className={({ isActive }) =>
-              `relative px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                isActive
-                  ? "bg-white/25 text-white"
-                  : "text-white/90 hover:text-white hover:bg-white/15"
-              }`
-            }
-            aria-label="Ver carrito"
-          >
+          <NavLink to="/carrito" className={claseLink} aria-label="Ver carrito">
             🛒
-            <BadgeCarrito cantidadItems={cantidadItems} />
+            <BadgeCarrito key={cantidadItems} cantidadItems={cantidadItems} />
           </NavLink>
+        </div>
 
+        {/* Derecha: acciones de sesión (escritorio) */}
+        <div className="hidden md:flex items-center gap-1">
           {esAdmin && (
             <NavLink
               to="/admin/productos"
-              className="ml-1 text-sm bg-white text-orange-600 hover:bg-orange-50 px-3 py-1.5 rounded-lg font-bold"
+              className="ml-1 text-sm bg-white text-orange-600 px-3 py-1.5 rounded-full font-bold shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95"
             >
               Panel Admin
             </NavLink>
@@ -103,7 +98,7 @@ function Navbar({ usuario, onLogout }) {
               </span>
               <button
                 onClick={onLogout}
-                className="text-sm text-white hover:text-orange-100 font-medium cursor-pointer px-3 py-2 rounded-lg hover:bg-white/15 transition-colors"
+                className="text-sm text-white hover:text-orange-100 font-medium cursor-pointer px-3 py-2 rounded-lg hover:bg-white/15 transition-all duration-200 hover:scale-105 active:scale-95"
               >
                 Cerrar sesión
               </button>
@@ -111,7 +106,7 @@ function Navbar({ usuario, onLogout }) {
           ) : (
             <NavLink
               to="/login"
-              className="ml-1 text-sm bg-white text-orange-600 hover:bg-orange-50 px-4 py-2 rounded-lg font-bold"
+              className="ml-1 text-sm bg-white text-orange-600 px-4 py-2 rounded-full font-bold shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95"
             >
               Login
             </NavLink>
@@ -122,17 +117,19 @@ function Navbar({ usuario, onLogout }) {
         <div className="flex md:hidden items-center gap-3">
           <NavLink
             to="/carrito"
-            className="relative text-xl text-white px-2 py-1"
+            className="relative text-xl text-white px-2 py-1 transition-transform duration-200 hover:scale-110 active:scale-90"
             aria-label="Ver carrito"
           >
             🛒
-            <BadgeCarrito cantidadItems={cantidadItems} />
+            <BadgeCarrito key={cantidadItems} cantidadItems={cantidadItems} />
           </NavLink>
           <button
             onClick={() => setMenuMovilAbierto((a) => !a)}
             aria-label="Abrir menú de navegación"
             aria-expanded={menuMovilAbierto}
-            className="text-xl text-white cursor-pointer px-2 py-1"
+            className={`text-xl text-white cursor-pointer px-2 py-1 rounded-lg hover:bg-white/15 transition-all duration-300 hover:scale-110 ${
+              menuMovilAbierto ? "rotate-90" : "rotate-0"
+            }`}
           >
             {menuMovilAbierto ? "✕" : "☰"}
           </button>
@@ -141,7 +138,7 @@ function Navbar({ usuario, onLogout }) {
 
       {/* Panel desplegable del menú móvil */}
       {menuMovilAbierto && (
-        <div className="md:hidden mt-3 bg-white rounded-2xl shadow-lg p-2 flex flex-col gap-1">
+        <div className="md:hidden mt-3 bg-white rounded-2xl shadow-lg p-2 flex flex-col gap-1 animate-fade-slide-down">
           <NavLink to="/home" className={claseLinkMovil} onClick={() => setMenuMovilAbierto(false)}>
             <span aria-hidden="true">🏠</span> Inicio
           </NavLink>

@@ -8,8 +8,10 @@ import AdminProductos from "./pages/admin/AdminProductos"
 import AdminRoute from "./components/AdminRoute"
 import AdminLayout from "./components/admin/AdminLayout"
 import { CarritoProvider } from "./context/CarritoProvider"
+import { AvisoProvider } from "./context/AvisoProvider"
 import CarritoPage from "./pages/CarritoPage"
 import CheckoutPage from "./pages/CheckoutPage"
+import PedidoConfirmadoPage from "./pages/PedidoConfirmadoPage" 
 
 
 
@@ -38,6 +40,7 @@ const handleLogout = () => {
 }
 
   return (
+    <AvisoProvider>
     <CarritoProvider>
       <BrowserRouter>
         <Routes>
@@ -56,11 +59,13 @@ const handleLogout = () => {
         <Route path="/registro" element={<RegisterPage onRegister={handleRegister} usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/carrito" element={<CarritoPage usuario={usuario} onLogout={handleLogout} />} />
-        <Route path="/checkout" element={<CheckoutPage usuario={usuario} onLogout={handleLogout} />} />   
+        <Route path="/checkout" element={<CheckoutPage usuario={usuario} onLogout={handleLogout} />} />
+        <Route path="/pedido/confirmado" element={<PedidoConfirmadoPage usuario={usuario} onLogout={handleLogout} />} />    
         <Route path="/menu" element={<MenuPage usuario={usuario} onLogout={handleLogout} />} />
       </Routes>
     </BrowserRouter>
     </CarritoProvider>
+    </AvisoProvider>
   )
 }
 

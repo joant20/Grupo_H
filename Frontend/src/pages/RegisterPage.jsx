@@ -6,6 +6,7 @@ import Input from "../components/ui/input"
 import Button from "../components/ui/Button"
 import FloatingMenu from "../components/FloatingMenu"
 import { registrarUsuario } from "../lib/api"
+import { useAviso } from "../hooks/useAviso"
 
 const schema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -23,6 +24,7 @@ const schema = z.object({
 
 function RegisterPage({ onRegister, usuario, onLogout }) {
   const navigate = useNavigate()
+  const { mostrarAviso } = useAviso()
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: standardSchemaResolver(schema),
   })
@@ -32,11 +34,19 @@ function RegisterPage({ onRegister, usuario, onLogout }) {
     const respuesta = await registrarUsuario(data)
     console.log("Registro exitoso:", respuesta.data)
     onRegister(respuesta.data)
-    alert("✅ Cuenta creada correctamente")
+    mostrarAviso({
+      titulo: "Cuenta creada",
+      mensaje: "Tu cuenta se creó correctamente. ¡Bienvenido!",
+      tipo: "exito",
+    })
     navigate("/")
   } catch (error) {
     console.error("Error al registrar:", error.response?.data?.mensaje || "Error del servidor")
-    alert("❌ " + (error.response?.data?.mensaje || "Error al crear la cuenta"))
+    mostrarAviso({
+      titulo: "No se pudo crear la cuenta",
+      mensaje: error.response?.data?.mensaje || "Error al crear la cuenta",
+      tipo: "error",
+    })
   }
 }
 

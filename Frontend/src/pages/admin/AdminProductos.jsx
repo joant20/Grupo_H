@@ -5,7 +5,8 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import useProductos from "../../hooks/useProductos"
 import Input from "../../components/ui/input"
 import Select from "../../components/ui/Select"
-import TextArea from "../../components/ui/TextArea"
+ import TextArea from "../../components/ui/TextArea"
+ import { useAviso } from "../../hooks/useAviso"
 
 
 const categoriasDisponibles = [
@@ -35,6 +36,7 @@ const schema = z.object({
 
 function AdminProductos() {
   const { productos, agregarProducto, actualizarProducto, eliminarProducto } = useProductos()
+  const { confirmarAviso } = useAviso()
   const [mostrarFormulario, setMostrarFormulario] = useState(false)
   const [productoEditar, setProductoEditar] = useState(null)
   const [filtroEstado, setFiltroEstado] = useState("todos")
@@ -104,7 +106,13 @@ function AdminProductos() {
   }
 
  const handleEliminar = async (id) => {
-  if (window.confirm("¿Estás seguro de eliminar este producto?")) {
+  const seguro = await confirmarAviso({
+    titulo: "Eliminar producto",
+    mensaje: "¿Estás seguro de eliminar este producto?",
+    confirmarTexto: "Sí, eliminar",
+    textoCancelar: "No, volver",
+  })
+  if (seguro) {
     await eliminarProducto(id)
   }
 }

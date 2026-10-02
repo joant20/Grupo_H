@@ -17,7 +17,7 @@ function ProductoDetalle({ producto, onCerrar, onAgregar }) {
       onClick={onCerrar}
     >
       <div
-        className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl animate-float-in"
+        className="bg-white rounded-2xl max-w-lg w-full max-h-[85vh] overflow-y-auto shadow-2xl animate-float-in"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="relative">

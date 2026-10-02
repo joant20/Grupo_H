@@ -1,14 +1,21 @@
 import { useState } from "react"
+import { useSearchParams } from "react-router-dom"
 import useProductos from "../hooks/useProductos"
 import ProductoCard from "../components/ProductoCard"
 import Navbar from "../components/Navbar"
 import ProductoDetalle from "../components/ProductoDetalle"
 import { useCarrito } from "../hooks/useCarrito"
+import { useAviso } from "../hooks/useAviso"
 
 function MenuPage({ usuario, onLogout }) {
   const { productos, categorias } = useProductos()
+  const { mostrarAviso } = useAviso()
   const [busqueda, setBusqueda] = useState("")
-  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState("Todos")
+  // Filtro inicial desde la URL: /menu?categoria=Pizzas viene preseleccionado
+  const [searchParams] = useSearchParams()
+  const [categoriaSeleccionada, setCategoriaSeleccionada] = useState(
+    searchParams.get("categoria") ?? "Todos"
+  )
   const { agregarAlCarrito } = useCarrito()
   const [productoSeleccionado, setProductoSeleccionado] = useState(null)
 
@@ -31,7 +38,11 @@ function MenuPage({ usuario, onLogout }) {
     const handleAgregarCarrito = (producto) => {
   const seAgrego = agregarAlCarrito(producto)
   if (!seAgrego) {
-    alert(`🚫 "${producto.nombre}" está agotado y no se puede agregar`)
+    mostrarAviso({
+      titulo: "Producto agotado",
+      mensaje: `"${producto.nombre}" está agotado y no se puede agregar`,
+      tipo: "error",
+    })
   }
 
   }

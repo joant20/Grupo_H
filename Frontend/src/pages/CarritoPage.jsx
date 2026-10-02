@@ -1,9 +1,11 @@
 import { Link } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import { useCarrito } from "../hooks/useCarrito"
+import { useAviso } from "../hooks/useAviso"
 
 function CarritoPage({ usuario, onLogout }) {
   const { carrito, quitarItem, actualizarCantidad, totalCarrito, vaciarCarrito, cantidadItems } = useCarrito()
+  const { confirmarAviso } = useAviso()
 
   if (carrito.length === 0) {
     return (
@@ -33,17 +35,17 @@ function CarritoPage({ usuario, onLogout }) {
 
         <div className="space-y-4 mb-6">
           {carrito.map((item) => (
-            <div
+             <div
               key={item._id}
-              className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 flex items-center gap-4"
+              className="bg-white rounded-xl shadow-sm border border-gray-100 p-3 sm:p-4 flex flex-wrap items-center gap-3 sm:gap-4"
             >
               <img
                 src={item.imagen}
                 alt={item.nombre}
-                className="w-16 h-16 object-cover rounded-lg"
+                className="w-14 h-14 sm:w-16 sm:h-16 object-cover rounded-lg"
               />
 
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-[110px]">
                 <h3 className="font-semibold text-gray-800">{item.nombre}</h3>
                 <p className="text-orange-600 text-sm">
                   ${item.precio.toFixed(2)} c/u
@@ -52,30 +54,35 @@ function CarritoPage({ usuario, onLogout }) {
 
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => actualizarCantidad(item._id, item.cantidad - 1)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 font-bold cursor-pointer"
+                  type="button"
+                  onClick={() => actualizarCantidad(item._id, Math.max(1, item.cantidad - 1))}
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
+                  aria-label={`Reducir cantidad de ${item.nombre}`}
                 >
                   −
                 </button>
                 <span className="w-8 text-center font-medium">{item.cantidad}</span>
                 <button
+                  type="button"
                   onClick={() => actualizarCantidad(item._id, item.cantidad + 1)}
-                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 font-bold cursor-pointer"
+                  className="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200"
+                  aria-label={`Aumentar cantidad de ${item.nombre}`}
                 >
                   +
                 </button>
               </div>
 
-              <span className="w-24 text-right font-bold text-gray-800">
+              <span className="w-20 sm:w-24 text-right font-bold text-gray-800">
                 ${(item.precio * item.cantidad).toFixed(2)}
               </span>
 
               <button
+                type="button"
                 onClick={() => quitarItem(item._id)}
-                className="text-gray-400 hover:text-red-500 text-xl cursor-pointer"
-                aria-label="Quitar producto"
+                className="text-red-500 hover:text-red-700 px-2"
+                aria-label={`Quitar ${item.nombre} del carrito`}
               >
-                x
+                ×
               </button>
             </div>
           ))}
@@ -117,10 +124,14 @@ function CarritoPage({ usuario, onLogout }) {
           </Link>
 
           <button
-            onClick={() => {
-              if (window.confirm("¿Seguro que quieres vaciar todo el carrito?")) {
-                vaciarCarrito()
-              }
+            onClick={async () => {
+              const seguro = await confirmarAviso({
+                titulo: "Vaciar carrito",
+                mensaje: "¿Seguro que quieres vaciar todo el carrito?",
+                confirmarTexto: "Sí, vaciar",
+                textoCancelar: "No, volver",
+              })
+              if (seguro) vaciarCarrito()
             }}
             className="w-full text-center bg-red-50 hover:bg-red-100 text-red-600 py-3 rounded-lg font-medium mt-3 cursor-pointer"
           >

@@ -1,19 +1,29 @@
 import { useState } from "react"
+import { useAviso } from "../../hooks/useAviso"
 
 function FileInput({ label, id, accept = "image/*", onChange, error, previewActual }) {
   const [preview, setPreview] = useState(previewActual || null)
+  const { mostrarAviso } = useAviso()
 
   const handleChange = (e) => {
     const archivo = e.target.files[0]
     if (archivo) {
       // Validar que sea imagen
       if (!archivo.type.startsWith("image/")) {
-        alert("Solo se permiten imágenes")
+        mostrarAviso({
+          titulo: "Archivo no válido",
+          mensaje: "Solo se permiten imágenes",
+          tipo: "error",
+        })
         return
       }
       // Validar tamaño (5MB max)
       if (archivo.size > 5 * 1024 * 1024) {
-        alert("La imagen no debe superar 5MB")
+        mostrarAviso({
+          titulo: "Imagen muy pesada",
+          mensaje: "La imagen no debe superar 5MB",
+          tipo: "error",
+        })
         return
       }
       // Crear preview

@@ -18,6 +18,7 @@ import { beforeEach, afterEach, describe, expect, it } from "vitest"
 import { cleanup, fireEvent, render, screen } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { CarritoProvider } from "../context/CarritoProvider"
+import { AvisoProvider } from "../context/AvisoProvider"
 import CarritoPage from "../pages/CarritoPage"
 
 const producto = {
@@ -32,9 +33,11 @@ const producto = {
 function pintar() {
   return render(
     <MemoryRouter>
-      <CarritoProvider>
-        <CarritoPage usuario={null} onLogout={() => {}} />
-      </CarritoProvider>
+      <AvisoProvider>
+        <CarritoProvider>
+          <CarritoPage usuario={null} onLogout={() => {}} />
+        </CarritoProvider>
+      </AvisoProvider>
     </MemoryRouter>
   )
 }
@@ -91,7 +94,7 @@ describe("CarritoPage - cantidades y total", () => {
     sembrar(1)
     pintar()
 
-    fireEvent.click(screen.getByLabelText("Quitar producto"))
+    fireEvent.click(screen.getByLabelText(`Quitar ${producto.nombre} del carrito`))
 
     expect(screen.getByText("Tu carrito está vacío")).toBeInTheDocument()
   })
