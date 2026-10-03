@@ -19,6 +19,26 @@ const userSchema = new mongoose.Schema({
         required:true,
         minlength:6
     },
+    // CORRECCIÓN: el frontend ya envía estos datos en el registro y antes se
+    // perdían (Mongoose los descartaba). Ahora se guardan y se muestran en Home.
+    fechaNacimiento:{
+        type:Date
+    },
+    telefono:{
+        type:String,
+        trim:true,
+        default:''
+    },
+    ciudad:{
+        type:String,
+        trim:true,
+        default:''
+    },
+    direccion:{
+        type:String,
+        trim:true,
+        default:''
+    },
     rol: {
         type:String,
         enum: ['cliente','cocina','admin'],

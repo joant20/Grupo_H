@@ -1,5 +1,6 @@
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
+
 
 const CLAVE_STORAGE = "pedido_confirmado"
 
@@ -22,6 +23,7 @@ function leerPedido() {
 function PedidoConfirmadoPage({ usuario, onLogout }) {
   // useLocation() = "¿en qué URL estoy y qué datos trae el navigate?"
   const location = useLocation()
+  const navigate = useNavigate()
   // 1ª opción: los datos que trajo navigate (state). 2ª opción: sessionStorage (si recargas con F5)
   const pedido = location.state?.pedido ?? leerPedido()
 
@@ -174,10 +176,15 @@ function PedidoConfirmadoPage({ usuario, onLogout }) {
             </span>
           </div>
         </div>
-
+          <button
+          onClick={() => navigate("/ticket", { state: { pedido } })}
+          className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-lg shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 mb-3"
+        >
+          🧾 Ver ticket
+        </button>
         <Link
           to="/menu"
-          className="block w-full text-center bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-medium"
+          className="block w-full text-center bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-medium mt-3"
         >
           Seguir comprando
         </Link>

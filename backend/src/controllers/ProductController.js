@@ -5,7 +5,9 @@ const crearProducto = async (req, res) => {
   try {
     const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible } = req.body;
 
-    if (!nombre || !descripcion || precio === undefined) {
+    // CORRECCIÓN: se valida también que el precio sea numérico (antes un valor
+    // no numérico llegaba a Mongoose y devolvía un 500 en vez de un 400).
+    if (!nombre || !descripcion || precio === undefined || Number.isNaN(Number(precio))) {
       return res.status(400).json({ mensaje: 'Nombre, descripción y precio son obligatorios' });
     }
     const urlImagen = req.file ? req.file.path : (imagen || '');
@@ -52,11 +54,25 @@ const obtenerProducto = async (req, res) => {
 const actualizarProducto = async (req, res) => {
   try {
     const { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible } = req.body;
-    const camposActualizados = { nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible };
-    
+
+    // CORRECCIÓN: solo se actualizan los campos que vienen en el body.
+    // Antes los undefined se mandaban igual y podían borrar valores del producto.
+    const camposActualizados = Object.fromEntries(
+      Object.entries({ nombre, descripcion, precio, imagen, categoria, tiempoPreparacion, calorias, destacado, disponible })
+        .filter(([, valor]) => valor !== undefined)
+    );
+
+    if ((camposActualizados.nombre !== undefined && !String(camposActualizados.nombre).trim()) ||
+        (camposActualizados.descripcion !== undefined && !String(camposActualizados.descripcion).trim())) {
+      return res.status(400).json({ mensaje: 'Nombre y descripción no pueden estar vacíos' });
+    }
 
     if (req.file) {
       camposActualizados.imagen = req.file.path;
+    }
+
+    if (Object.keys(camposActualizados).length === 0) {
+      return res.status(400).json({ mensaje: 'No se recibieron campos para actualizar' });
     }
 
     const producto = await Product.findByIdAndUpdate(

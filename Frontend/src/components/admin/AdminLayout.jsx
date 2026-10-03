@@ -18,6 +18,22 @@ const claseLinkMovil = ({ isActive }) =>
       : "text-gray-700 hover:text-orange-600 hover:bg-orange-50"
   }`
 
+// Botón de Ventas: estilo "pill" blanco sobre la barra naranja para que destaque
+const claseVentas = ({ isActive }) =>
+  `px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+    isActive
+      ? "bg-white text-orange-600 ring-2 ring-white/70 shadow-lg"
+      : "bg-white text-orange-600 shadow-md hover:shadow-lg hover:scale-105 active:scale-95"
+  }`
+
+// Versión móvil: sobre el menú desplegable (fondo blanco) destaca relleno naranja
+const claseVentasMovil = ({ isActive }) =>
+  `flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-bold transition-colors ${
+    isActive
+      ? "bg-orange-600 text-white"
+      : "bg-orange-50 text-orange-700 hover:bg-orange-100 ring-1 ring-orange-200"
+  }`
+
 function AdminLayout({ children }) {
   const [abierto, setAbierto] = useState(false)
   const cerrar = () => setAbierto(false)
@@ -41,6 +57,9 @@ function AdminLayout({ children }) {
 
           {/* Escritorio: enlaces en fila */}
           <div className="hidden md:flex items-center gap-1">
+            <NavLink to="/admin/ventas" className={claseVentas}>
+              💰 Ventas
+            </NavLink>
             <NavLink to="/menu" className={claseLink}>
               Ver sitio
             </NavLink>
@@ -63,6 +82,9 @@ function AdminLayout({ children }) {
         {/* Panel desplegable del menú móvil */}
         {abierto && (
           <div className="md:hidden mt-3 bg-white rounded-2xl shadow-lg p-2 flex flex-col gap-1">
+            <NavLink to="/admin/ventas" onClick={cerrar} className={claseVentasMovil}>
+              <span aria-hidden="true">💰</span> Ventas
+            </NavLink>
             <NavLink to="/menu" onClick={cerrar} className={claseLinkMovil}>
               <span aria-hidden="true">🍕</span> Ver sitio
             </NavLink>

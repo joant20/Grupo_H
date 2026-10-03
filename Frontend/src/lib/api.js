@@ -12,6 +12,21 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+api.interceptors.response.use(
+  (respuesta) => respuesta,
+  (error) => {
+    const sinRespuesta = !error.response
+    const servidorConProblemas = error.response && error.response.status >= 500
+    const yaEstoyEnLaPaginaDeError = window.location.pathname === "/servidor-caido"
+
+    if ((sinRespuesta || servidorConProblemas) && !yaEstoyEnLaPaginaDeError) {
+      window.location.assign("/servidor-caido")
+    }
+
+    return Promise.reject(error)
+  }
+)
+
 // Usuarios
 export const registrarUsuario = (datos) => api.post("/users/register", datos)
 export const loginUsuario = (datos) => api.post("/users/login", datos)

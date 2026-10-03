@@ -8,6 +8,7 @@ import { z } from "zod"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import Input from "../components/ui/input"
 import TextArea from "../components/ui/TextArea"
+import { guardarVenta } from "../lib/historialVentas"
 
 const detectarModoInicial = () => {
   const esMovil =
@@ -75,6 +76,19 @@ const crearSchema = (requiereNombre) =>
           code: "custom",
           path: ["vencimiento"],
           message: "Vencimiento inválido (usa MM/AA)",
+        })
+      }
+       const anioActual = new Date().getFullYear() % 100
+      const mesActual = new Date().getMonth() + 1
+      const mes = Number(venc.slice(0, 2))
+      const anio = Number(venc.slice(2))
+      const formatoValido = /^(0[1-9]|1[0-2])\d{2}$/.test(venc)
+
+      if (formatoValido && (anio < anioActual || (anio === anioActual && mes < mesActual))) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["vencimiento"],
+          message: "La tarjeta está vencida (usa MM/AA)",
         })
       }
 
@@ -190,6 +204,7 @@ function CheckoutPage({ usuario, onLogout }) {
     }
 
     sessionStorage.setItem("pedido_confirmado", JSON.stringify(pedido))
+    guardarVenta(pedido) 
     vaciarCarrito()
     navigate("/pedido/confirmado", { state: { pedido } })
   }

@@ -117,6 +117,61 @@ describe("CheckoutPage - selector de método de pago", () => {
     expect(screen.queryByText("¿Confirmar tu pedido?")).not.toBeInTheDocument()
   })
 
+  it("marca error si la tarjeta está vencida", async () => {
+    sembrarCarrito()
+    pintar(null)
+
+    fireEvent.click(screen.getByText("Tarjeta"))
+    fireEvent.change(screen.getByLabelText("Número de tarjeta"), {
+      target: { value: "4111111111111111" },
+    })
+    fireEvent.change(screen.getByLabelText("Vencimiento"), {
+      target: { value: "01/20" },
+    })
+    fireEvent.change(screen.getByLabelText("CVV"), {
+      target: { value: "123" },
+    })
+
+    const boton = screen.getByRole("button", { name: "Confirmar pedido" })
+    fireEvent.submit(boton.closest("form"))
+
+    expect(await screen.findByText("La tarjeta está vencida (usa MM/AA)")).toBeInTheDocument()
+    expect(screen.queryByText("¿Confirmar tu pedido?")).not.toBeInTheDocument()
+  })
+
+  it("acepta una tarjeta con vencimiento futuro", async () => {
+    sembrarCarrito()
+    pintar(null)
+
+    const anioFuturo = (new Date().getFullYear() + 2) % 100
+    const vencimientoFuturo = `12/${String(anioFuturo).padStart(2, "0")}`
+
+    fireEvent.click(screen.getByText("Tarjeta"))
+    fireEvent.change(screen.getByLabelText("Número de tarjeta"), {
+      target: { value: "4111111111111111" },
+    })
+    fireEvent.change(screen.getByLabelText("Vencimiento"), {
+      target: { value: vencimientoFuturo },
+    })
+    fireEvent.change(screen.getByLabelText("CVV"), {
+      target: { value: "123" },
+    })
+
+    fireEvent.change(screen.getByLabelText("Nombre completo"), {
+      target: { value: "Ana López" },
+    })
+    fireEvent.change(screen.getByLabelText("Teléfono"), {
+      target: { value: "3001234567" },
+    })
+    fireEvent.click(screen.getByText("Efectivo"))
+
+    const boton = screen.getByRole("button", { name: "Confirmar pedido" })
+    fireEvent.submit(boton.closest("form"))
+
+    expect(await screen.findByText("¿Confirmar tu pedido?")).toBeInTheDocument()
+    expect(screen.queryByText("La tarjeta está vencida (usa MM/AA)")).not.toBeInTheDocument()
+  })
+
   it("formatea el número con espacios mientras se escribe", () => {
     sembrarCarrito()
     pintar(null)

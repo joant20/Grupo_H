@@ -50,8 +50,7 @@ function LoginPage({ onLogin, usuario, onLogout }) {
           </div>
         )}
 
-        <form onSubmit={handleSubmit(onSubmit)}></form>
-
+        {/* CORRECCIÓN: había un segundo <form> vacío duplicado sobre este; ya se eliminó. */}
         <form onSubmit={handleSubmit(onSubmit)}>
           <Input
             label="Email"

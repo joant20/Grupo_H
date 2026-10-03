@@ -9,10 +9,24 @@ const generarToken = (usuario) => {
   );
 };
 
+// Datos del usuario que viajan al frontend (sin password)
+// CORRECCIÓN: registro y login devuelven lo mismo, incluyendo los datos de
+// perfil (teléfono, dirección, ciudad, fecha de nacimiento) que antes no se enviaban.
+const datosUsuario = (usuario) => ({
+  id: usuario._id,
+  nombre: usuario.nombre,
+  email: usuario.email,
+  rol: usuario.rol,
+  fechaNacimiento: usuario.fechaNacimiento,
+  telefono: usuario.telefono,
+  ciudad: usuario.ciudad,
+  direccion: usuario.direccion
+});
+
 // POST /api/users/register
 const registrar = async (req, res) => {
   try {
-    const { nombre, email, password } = req.body;
+    const { nombre, email, password, fechaNacimiento, telefono, ciudad, direccion } = req.body;
 
     if (!nombre || !email || !password) {
       return res.status(400).json({ mensaje: 'Nombre, email y contraseña son obligatorios' });
@@ -23,14 +37,23 @@ const registrar = async (req, res) => {
       return res.status(409).json({ mensaje: 'Ese email ya está registrado' });
     }
 
-    const nuevoUsuario = new User({ nombre, email, password, rol: 'cliente' });
+    const nuevoUsuario = new User({
+      nombre,
+      email,
+      password,
+      rol: 'cliente',
+      fechaNacimiento: fechaNacimiento || undefined,
+      telefono,
+      ciudad,
+      direccion
+    });
     await nuevoUsuario.save();
 
     const token = generarToken(nuevoUsuario);
 
     res.status(201).json({
       mensaje: 'Cliente registrado correctamente',
-      usuario: { id: nuevoUsuario._id, nombre: nuevoUsuario.nombre, email: nuevoUsuario.email, rol: nuevoUsuario.rol },
+      usuario: datosUsuario(nuevoUsuario),
       token
     });
   } catch (error) {
@@ -61,7 +84,7 @@ const login = async (req, res) => {
 
     res.json({
       mensaje: 'Sesión iniciada correctamente',
-      usuario: { id: usuario._id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
+      usuario: datosUsuario(usuario),
       token
     });
   } catch (error) {

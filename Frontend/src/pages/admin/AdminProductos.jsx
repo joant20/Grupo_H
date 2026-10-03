@@ -23,7 +23,9 @@ const categoriasDisponibles = [
 
 const schema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  descripcion: z.string().optional(),
+  // CORRECCIÓN: la descripción era opcional aquí pero obligatoria en el backend,
+  // y dejarla vacía devolvía un error 400 al crear/editar. Ahora ambos la exigen.
+  descripcion: z.string().min(2, "La descripción debe tener al menos 2 caracteres"),
   precio: z.number().min(0.01, "El precio debe ser mayor a 0"),
   categoria: z.string().min(1, "Selecciona una categoría"),
   tiempoPreparacion: z.number().min(1, "Mínimo 1 minuto").optional().or(z.nan()),
@@ -171,6 +173,7 @@ function AdminProductos() {
                 id="descripcion"
                 rows={2}
                 register={register("descripcion")}
+                error={errors.descripcion}
               />
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

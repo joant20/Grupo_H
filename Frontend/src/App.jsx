@@ -12,6 +12,9 @@ import { AvisoProvider } from "./context/AvisoProvider"
 import CarritoPage from "./pages/CarritoPage"
 import CheckoutPage from "./pages/CheckoutPage"
 import PedidoConfirmadoPage from "./pages/PedidoConfirmadoPage" 
+import ServidorCaidoPage from "./pages/ServidorCaidoPage"
+import VentasPage from "./pages/admin/VentasPage"
+import TicketPage from "./pages/TicketPage"
 
 
 
@@ -45,22 +48,34 @@ const handleLogout = () => {
       <BrowserRouter>
         <Routes>
           <Route
-    path="/admin/productos"
-    element={
+           path="/admin/ventas"
+  element={
     <AdminRoute usuario={usuario}>
       <AdminLayout>
-        <AdminProductos />
+        <VentasPage />
       </AdminLayout>
     </AdminRoute>
   }
 />
+          <Route
+            path="/admin/productos"
+            element={
+              <AdminRoute usuario={usuario}>
+                <AdminLayout>
+                  <AdminProductos />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
         <Route path="/" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/registro" element={<RegisterPage onRegister={handleRegister} usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/carrito" element={<CarritoPage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/checkout" element={<CheckoutPage usuario={usuario} onLogout={handleLogout} />} />
-        <Route path="/pedido/confirmado" element={<PedidoConfirmadoPage usuario={usuario} onLogout={handleLogout} />} />    
+        <Route path="/servidor-caido" element={<ServidorCaidoPage />} />
+        <Route path="/pedido/confirmado" element={<PedidoConfirmadoPage usuario={usuario} onLogout={handleLogout} />} />   
+         <Route path="/ticket" element={<TicketPage usuario={usuario} onLogout={handleLogout} />} /> 
         <Route path="/menu" element={<MenuPage usuario={usuario} onLogout={handleLogout} />} />
       </Routes>
     </BrowserRouter>
