@@ -15,6 +15,7 @@ import PedidoConfirmadoPage from "./pages/PedidoConfirmadoPage"
 import ServidorCaidoPage from "./pages/ServidorCaidoPage"
 import VentasPage from "./pages/admin/VentasPage"
 import TicketPage from "./pages/TicketPage"
+import CocinaPage from "./pages/CocinaPage"
 
 
 
@@ -63,6 +64,16 @@ const handleLogout = () => {
               <AdminRoute usuario={usuario}>
                 <AdminLayout>
                   <AdminProductos />
+                </AdminLayout>
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/cocina"
+            element={
+              <AdminRoute usuario={usuario}>
+                <AdminLayout>
+                  <CocinaPage />
                 </AdminLayout>
               </AdminRoute>
             }

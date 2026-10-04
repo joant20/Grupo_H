@@ -93,3 +93,18 @@ export function calcularResumen(ventas) {
     historial,
   }
 }
+
+// Cambia el estado de una venta guardada
+export function actualizarEstadoVenta(numero, nuevoEstado) {
+  try {
+    const ventas = obtenerVentas()
+    const actualizadas = ventas.map((v) =>
+      v.numero === numero ? { ...v, estado: nuevoEstado } : v
+    )
+    localStorage.setItem(CLAVE, JSON.stringify(actualizadas))
+    return actualizadas
+  } catch (error) {
+    console.warn("No se pudo actualizar el estado:", error)
+    return null
+  }
+}

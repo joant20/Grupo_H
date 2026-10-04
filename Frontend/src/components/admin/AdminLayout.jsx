@@ -57,6 +57,9 @@ function AdminLayout({ children }) {
 
           {/* Escritorio: enlaces en fila */}
           <div className="hidden md:flex items-center gap-1">
+            <NavLink to="/cocina" className={claseLink}>
+              🍳 Cocina
+            </NavLink>
             <NavLink to="/admin/ventas" className={claseVentas}>
               💰 Ventas
             </NavLink>
@@ -82,6 +85,9 @@ function AdminLayout({ children }) {
         {/* Panel desplegable del menú móvil */}
         {abierto && (
           <div className="md:hidden mt-3 bg-white rounded-2xl shadow-lg p-2 flex flex-col gap-1">
+            <NavLink to="/cocina" onClick={cerrar} className={claseLinkMovil}>
+              <span aria-hidden="true">🍳</span> Cocina
+            </NavLink>
             <NavLink to="/admin/ventas" onClick={cerrar} className={claseVentasMovil}>
               <span aria-hidden="true">💰</span> Ventas
             </NavLink>
