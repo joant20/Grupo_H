@@ -5,7 +5,7 @@ const crearPedido = async (req,res)=>{
     //Esto es lo que se espera desde el frontend
 
     try {
-        const {items, direccionEntrega,metodoPago} = req.body ;
+        const {items,nombreCompleto, direccionEntrega,metodoPago} = req.body ;
 
         if(!items || items.length ===0) {
             return res.this.status(400).json({mensaje: 'El pedido debe tener al menos un producto'});
@@ -33,13 +33,15 @@ const crearPedido = async (req,res)=>{
             productosDelPedido.push({
                 nombre:producto.nombre, 
                 cantidad: item.cantidad, 
-                precio :producto.precio // Precio de la base de datos 
+                precioUnitario :producto.precio, // Precio de la base de datos 
+                subtotal: subtotalItem
             });
         }
 
         const total = subtotal; 
 
         const nuevoPedido = new Orden({
+            nombreCompleto,
             productos: productosDelPedido,
             subtotal,
             total,

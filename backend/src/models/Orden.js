@@ -11,7 +11,12 @@ const itemSchema = new mongoose.Schema({
         required:true,
         min:1
     },
-    precio:{
+    precioUnitario:{
+        type:Number,
+        required:true,
+        min:0
+    },
+    subtotal: {
         type:Number,
         required:true,
         min:0
@@ -19,6 +24,11 @@ const itemSchema = new mongoose.Schema({
 }, {_id:false});
 
 const ordenSchema = mongoose.Schema({
+    nombreCompleto: {
+        type: String,
+        required : true, 
+        trim:true 
+    },
     productos: {
         type:[itemSchema],
         required:true,
@@ -56,6 +66,6 @@ const ordenSchema = mongoose.Schema({
     timestamps:true
 })
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model('Order',ordenSchema);
 
 module.exports = Order;
