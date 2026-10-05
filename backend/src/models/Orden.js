@@ -24,6 +24,11 @@ const itemSchema = new mongoose.Schema({
 }, {_id:false});
 
 const ordenSchema = mongoose.Schema({
+     usuario: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     nombreCompleto: {
         type: String,
         required : true, 
