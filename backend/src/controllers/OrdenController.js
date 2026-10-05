@@ -8,7 +8,7 @@ const crearPedido = async (req,res)=>{
         const {items,nombreCompleto, direccionEntrega,metodoPago} = req.body ;
 
         if(!items || items.length ===0) {
-            return res.this.status(400).json({mensaje: 'El pedido debe tener al menos un producto'});
+            return res.status(400).json({mensaje: 'El pedido debe tener al menos un producto'});
         }
 
         // Buscar los productos reales en la base de datos para obtener sus precios verdaderos 
