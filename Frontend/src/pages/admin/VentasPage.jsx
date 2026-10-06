@@ -1,6 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   obtenerVentas,
+  obtenerVentasApi,
   filtrarPorPeriodo,
   calcularResumen,
 } from "../../lib/historialVentas"
@@ -24,8 +25,27 @@ function Tarjeta({ icono, titulo, valor }) {
 
 function VentasPage() {
   const [periodo, setPeriodo] = useState("todo")
+  // Arranca con lo local (no bloquea el render)…
+  const [ventas, setVentas] = useState(obtenerVentas)
 
-  const ventas = obtenerVentas()
+  // …y enseguida mezcla los pedidos del backend con los locales (issue #73)
+  useEffect(() => {
+    let vivo = true
+    obtenerVentasApi().then((ventasApi) => {
+      // null = falló el servidor: conservamos lo que ya teníamos
+      if (!vivo || ventasApi === null) return
+      setVentas((previas) => {
+        const locales = previas.filter(
+          (v) => !ventasApi.some((a) => a.numero === v.numero)
+        )
+        return [...ventasApi, ...locales]
+      })
+    })
+    return () => {
+      vivo = false
+    }
+  }, [])
+
   const ventasDelPeriodo = filtrarPorPeriodo(ventas, periodo)
   const resumen = calcularResumen(ventasDelPeriodo)
 

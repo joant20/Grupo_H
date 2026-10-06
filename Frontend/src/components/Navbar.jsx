@@ -74,6 +74,7 @@ function Navbar({ usuario, onLogout }) {
           <NavLink to="/menu" className={claseLink}>
             Menú
           </NavLink>
+          <NavLink to="/mis-pedidos" className={claseLink}>Mis Pedidos</NavLink>
           <NavLink to="/carrito" className={claseLink} aria-label="Ver carrito">
             🛒
             <BadgeCarrito key={cantidadItems} cantidadItems={cantidadItems} />
@@ -145,6 +146,9 @@ function Navbar({ usuario, onLogout }) {
           <NavLink to="/menu" className={claseLinkMovil} onClick={() => setMenuMovilAbierto(false)}>
             <span aria-hidden="true">🍕</span> Menú
           </NavLink>
+          <NavLink to="/mis-pedidos" className={claseLinkMovil} onClick={() => setMenuMovilAbierto(false)}>
+  <span aria-hidden="true">📦</span> Mis Pedidos
+</NavLink>
           <NavLink
             to="/carrito"
             className={claseLinkMovil}

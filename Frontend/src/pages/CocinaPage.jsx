@@ -1,5 +1,12 @@
-import { useState, useEffect } from "react"
-import { obtenerVentas, actualizarEstadoVenta } from "../lib/historialVentas"
+import { useState, useEffect, useCallback } from "react"
+import {
+  obtenerVentas,
+  obtenerVentasApi,
+  actualizarEstadoVenta,
+  estadosVistaAApi,
+} from "../lib/historialVentas"
+import { cambiarEstadoPedido } from "../lib/api"
+import { useAviso } from "../hooks/useAviso"
 
 
 
@@ -9,6 +16,7 @@ const estados = {
   nuevo: { texto: "Nuevo", clase: "bg-blue-100 text-blue-700", icono: "🆕" },
   preparando: { texto: "Preparando", clase: "bg-yellow-100 text-yellow-700", icono: "👨‍🍳" },
   listo: { texto: "Listo", clase: "bg-green-100 text-green-700", icono: "✅" },
+  cancelado: { texto: "Cancelado", clase: "bg-red-100 text-red-700", icono: "❌" },
 }
 
 const siguienteEstado = {
@@ -109,27 +117,62 @@ function ComandaCard({ venta, onCambiarEstado }) {
 
 function CocinaPage() {
   const [ventas, setVentas] = useState(() => obtenerVentas())
+  const { mostrarAviso } = useAviso()
+
+  // Trae los pedidos del backend y los combina con los locales (issue #73)
+  const refrescar = useCallback(async () => {
+    const ventasApi = await obtenerVentasApi()
+    const locales = obtenerVentas()
+    // null = falló el servidor: al menos mostramos lo local
+    if (ventasApi === null) {
+      setVentas(locales)
+      return
+    }
+    setVentas([
+      ...ventasApi,
+      ...locales.filter((v) => !ventasApi.some((a) => a.numero === v.numero)),
+    ])
+  }, [])
 
   // Refresco automático cada 5 segundos (issue #36)
   useEffect(() => {
-    const intervalo = setInterval(() => {
-      setVentas(obtenerVentas())
-    }, 5000)
-
+    refrescar()
+    const intervalo = setInterval(refrescar, 5000)
     return () => clearInterval(intervalo)
-  }, [])
+  }, [refrescar])
 
   // Refresco instantáneo entre pestañas
   useEffect(() => {
-    const alCambiarStorage = () => setVentas(obtenerVentas())
+    const alCambiarStorage = () => refrescar()
     window.addEventListener("storage", alCambiarStorage)
     return () => window.removeEventListener("storage", alCambiarStorage)
-  }, [])
-
-
+  }, [refrescar])
 
   // Guarda el estado y repinta
-  const cambiarEstado = (numero, nuevoEstado) => {
+  const cambiarEstado = async (numero, nuevoEstado) => {
+    const venta = ventas.find((v) => v.numero === numero)
+
+    // Pedido del backend → PATCH /api/orders/:id/estado
+    if (venta?.idApi) {
+      try {
+        await cambiarEstadoPedido(
+          venta.idApi,
+          estadosVistaAApi[nuevoEstado] ?? "En preparación"
+        )
+        await refrescar()
+      } catch (error) {
+        mostrarAviso({
+          titulo: "No se pudo actualizar",
+          mensaje:
+            error.response?.data?.mensaje ||
+            "Intenta de nuevo en unos segundos.",
+          tipo: "error",
+        })
+      }
+      return
+    }
+
+    // Pedido local (invitado)
     const actualizadas = actualizarEstadoVenta(numero, nuevoEstado)
     if (actualizadas) setVentas(actualizadas)
   }
@@ -150,7 +193,7 @@ function CocinaPage() {
           </p>
         </div>
         <button
-          onClick={() => setVentas(obtenerVentas())}
+          onClick={refrescar}
           className="bg-white border border-gray-200 hover:bg-orange-50 text-gray-700 px-4 py-2 rounded-full text-sm font-medium transition-colors cursor-pointer"
         >
           🔄 Actualizar

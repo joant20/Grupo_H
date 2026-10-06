@@ -1,13 +1,11 @@
 import { Navigate } from "react-router-dom"
 
-function AdminRoute({ usuario, children }) {
-  // No hay usuario logueado
+function AdminRoute({ usuario, roles = ["admin"], children }) {
   if (!usuario) {
     return <Navigate to="/login" replace />
   }
 
-  // El email no está en la lista de admins
-  if (usuario.rol !== "admin") {
+  if (!roles.includes(usuario.rol)) {
     return (
       <div className="min-h-screen bg-[#fef9f0] flex items-center justify-center px-4">
         <div className="bg-white rounded-2xl p-8 shadow-xl text-center max-w-md">

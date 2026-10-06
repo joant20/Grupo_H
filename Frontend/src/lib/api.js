@@ -30,9 +30,16 @@ api.interceptors.response.use(
 // Usuarios
 export const registrarUsuario = (datos) => api.post("/users/register", datos)
 export const loginUsuario = (datos) => api.post("/users/login", datos)
+export const crearUsuarioCocina = (datos) => api.post("/users/cocina", datos)
 
 // Productos
 export const obtenerProductos = () => api.get("/products")
 export const crearProducto = (datos) => api.post("/products", datos)
 export const actualizarProducto = (id, datos) => api.put(`/products/${id}`, datos)
 export const desactivarProducto = (id) => api.patch(`/products/${id}/desactivar`)
+
+// Pedidos
+export const crearPedido = (datos) => api.post("/orders", datos)
+export const obtenerPedidos = () => api.get("/orders")
+export const cambiarEstadoPedido = (id, estado) =>
+  api.patch(`/orders/${id}/estado`, { estado })

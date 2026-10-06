@@ -16,7 +16,8 @@ import ServidorCaidoPage from "./pages/ServidorCaidoPage"
 import VentasPage from "./pages/admin/VentasPage"
 import TicketPage from "./pages/TicketPage"
 import CocinaPage from "./pages/CocinaPage"
-
+import AdminUsuarios from "./pages/admin/AdminUsuarios"
+import MisPedidosPage from "./pages/MisPedidosPage"
 
 
 function App() {
@@ -49,39 +50,53 @@ const handleLogout = () => {
       <BrowserRouter>
         <Routes>
           <Route
-           path="/admin/ventas"
+  path="/admin/ventas"
   element={
     <AdminRoute usuario={usuario}>
-      <AdminLayout>
+      <AdminLayout usuario={usuario}>
         <VentasPage />
       </AdminLayout>
     </AdminRoute>
   }
 />
+
+  
+
           <Route
             path="/admin/productos"
             element={
               <AdminRoute usuario={usuario}>
-                <AdminLayout>
+                <AdminLayout usuario={usuario}>
                   <AdminProductos />
                 </AdminLayout>
               </AdminRoute>
             }
           />
           <Route
-            path="/cocina"
-            element={
-              <AdminRoute usuario={usuario}>
-                <AdminLayout>
-                  <CocinaPage />
-                </AdminLayout>
-              </AdminRoute>
-            }
-          />
+  path="/cocina"
+  element={
+    <AdminRoute usuario={usuario} roles={["admin", "cocina"]}>
+      <AdminLayout usuario={usuario}>
+        <CocinaPage />
+      </AdminLayout>
+    </AdminRoute>
+  }
+/>
+          <Route
+  path="/admin/usuarios"
+  element={
+    <AdminRoute usuario={usuario}>
+      <AdminLayout usuario={usuario}>
+        <AdminUsuarios />
+      </AdminLayout>
+    </AdminRoute>
+  }
+/>
         <Route path="/" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/login" element={<LoginPage onLogin={handleLogin} usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/registro" element={<RegisterPage onRegister={handleRegister} usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/home" element={<HomePage usuario={usuario} onLogout={handleLogout} />} />
+        <Route path="/mis-pedidos" element={<MisPedidosPage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/carrito" element={<CarritoPage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/checkout" element={<CheckoutPage usuario={usuario} onLogout={handleLogout} />} />
         <Route path="/servidor-caido" element={<ServidorCaidoPage />} />

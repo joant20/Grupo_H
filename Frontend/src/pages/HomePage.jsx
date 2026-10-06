@@ -112,10 +112,13 @@ function HomePage({ usuario, onLogout }) {
         )}
 
         <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-8">
-          <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow">
-            <span className="text-3xl block mb-2">📦</span>
-            <p className="text-xs sm:text-sm font-medium text-gray-700">Mis Pedidos</p>
-          </div>
+          <Link
+  to="/mis-pedidos"
+  className="block bg-white rounded-xl p-3 sm:p-4 shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow"
+>
+  <span className="text-3xl block mb-2">📦</span>
+  <p className="text-xs sm:text-sm font-medium text-gray-700">Mis Pedidos</p>
+</Link>
           <div className="bg-white rounded-xl p-3 sm:p-4 shadow-sm text-center cursor-pointer hover:shadow-md transition-shadow">
             <span className="text-3xl block mb-2">📍</span>
             <p className="text-xs sm:text-sm font-medium text-gray-700">Mis Direcciones</p>

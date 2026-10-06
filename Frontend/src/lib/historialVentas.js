@@ -1,4 +1,57 @@
+import { obtenerPedidos } from "./api"
+
 const CLAVE = "historial_ventas_v1"
+
+// El backend guarda los estados en español ("Recibido", "En preparación"...)
+// y la cocina los muestra en corto ("nuevo", "preparando", "listo").
+const estadosApiAVista = {
+  Recibido: "nuevo",
+  "En preparación": "preparando",
+  "En camino": "listo",
+  Entregado: "listo",
+  Cancelado: "cancelado",
+}
+
+export const estadosVistaAApi = {
+  nuevo: "Recibido",
+  preparando: "En preparación",
+  listo: "En camino",
+}
+
+// Convierte una Orden del backend al formato que usan VentasPage y CocinaPage
+function mapearOrdenAVenta(orden) {
+  const metodo = orden.metodoPago || ""
+  return {
+    idApi: orden._id,
+    numero: orden.numero || `#${String(orden._id).slice(-5).toUpperCase()}`,
+    fecha: orden.createdAt,
+    nombre: orden.nombreCompleto,
+    modoPedido: orden.modoPedido,
+    metodoPago: metodo.charAt(0).toUpperCase() + metodo.slice(1),
+    ultimos4: orden.ultimos4 ?? null,
+    total: orden.total,
+    productos: (orden.productos ?? []).map((p) => ({
+      nombre: p.nombre,
+      cantidad: p.cantidad,
+      precio: p.precioUnitario,
+    })),
+    estado: estadosApiAVista[orden.estado] ?? "nuevo",
+  }
+}
+
+// Trae los pedidos desde GET /api/orders.
+// Devuelve null si falló (para que la página conserve lo que ya tenía).
+export async function obtenerVentasApi() {
+  if (!localStorage.getItem("token")) return []
+  try {
+    const { data } = await obtenerPedidos()
+    return (Array.isArray(data) ? data : []).map(mapearOrdenAVenta)
+  } catch (error) {
+    console.warn("No se pudieron obtener los pedidos del servidor:", error)
+    return null
+  }
+}
+
 
 export function guardarVenta(pedido) {
   try {
@@ -25,8 +78,9 @@ export function guardarVenta(pedido) {
   }
 }
 
+// Ventas guardadas en ESTE navegador (pedidos de invitados).
+// Los pedidos de usuarios logueados viven en el backend y entran por obtenerVentasApi().
 export function obtenerVentas() {
-  // TODO(issue #25): cuando exista GET /api/orders, cambiar por await api.get("/orders")
   try {
     const guardado = localStorage.getItem(CLAVE)
     return guardado ? JSON.parse(guardado) : []

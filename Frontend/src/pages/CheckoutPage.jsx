@@ -9,6 +9,8 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import Input from "../components/ui/input"
 import TextArea from "../components/ui/TextArea"
 import { guardarVenta } from "../lib/historialVentas"
+import { crearPedido } from "../lib/api"
+import { useAviso } from "../hooks/useAviso"
 
 const detectarModoInicial = () => {
   const esMovil =
@@ -125,6 +127,7 @@ function CheckoutPage({ usuario, onLogout }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [datosEnvio, setDatosEnvio] = useState(null)
   const { carrito, totalCarrito, cantidadItems, vaciarCarrito } = useCarrito()
+  const { mostrarAviso } = useAviso()
   const navigate = useNavigate()
 
  const schema = crearSchema(!usuario)
@@ -183,8 +186,7 @@ function CheckoutPage({ usuario, onLogout }) {
     )
   }
 
-   const confirmarPedido = () => {
-    // FUTURO: aquí va el POST /api/orders (issue #24)
+  const confirmarPedido = async () => {
     const digitos = (datosEnvio.numeroTarjeta ?? "").replace(/\D/g, "")
 
     const pedido = {
@@ -203,8 +205,42 @@ function CheckoutPage({ usuario, onLogout }) {
       ultimos4: digitos ? digitos.slice(-4) : null,
     }
 
+    if (usuario) {
+      // Logueado: el pedido vive en el backend (GET /orders lo verá la cocina)
+      try {
+        await crearPedido({
+          nombreCompleto: datosEnvio.nombre || usuario?.nombre || "Cliente",
+          items: carrito.map((i) => ({ productId: i._id, cantidad: i.cantidad })),
+          direccionEntrega:
+            datosEnvio.direccion ||
+            (datosEnvio.modoPedido === "aqui"
+              ? "Comer en el restaurante"
+              : "Recoger en el local"),
+          // El backend solo acepta minúsculas (issue #69)
+          metodoPago: datosEnvio.metodoPago.toLowerCase(),
+          // Estos campos se enviarán cuando el modelo los soporte (issue #70)
+          numero: pedido.numero,
+          modoPedido: datosEnvio.modoPedido,
+          telefono: datosEnvio.telefono || "",
+          notas: datosEnvio.notas || "",
+          ultimos4: pedido.ultimos4,
+        })
+      } catch (error) {
+        mostrarAviso({
+          titulo: "No se pudo confirmar el pedido",
+          mensaje:
+            error.response?.data?.mensaje ||
+            "Intenta de nuevo en unos segundos.",
+          tipo: "error",
+        })
+        return // no vaciamos el carrito ni navegamos
+      }
+    } else {
+      // Invitado: solo en este navegador (el backend exige iniciar sesión)
+      guardarVenta(pedido)
+    }
+
     sessionStorage.setItem("pedido_confirmado", JSON.stringify(pedido))
-    guardarVenta(pedido) 
     vaciarCarrito()
     navigate("/pedido/confirmado", { state: { pedido } })
   }

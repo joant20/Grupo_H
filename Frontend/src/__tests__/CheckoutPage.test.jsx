@@ -7,12 +7,32 @@
  *  2. "pintar(usuario)" renderiza la página; pasa null o un objeto usuario.
  *  3. "expect()" verifica si el campo aparece/no aparece o si marca error.
  */
-import { beforeEach, afterEach, describe, expect, it } from "vitest"
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { MemoryRouter } from "react-router-dom"
 import { CarritoProvider } from "../context/CarritoProvider"
 import { AvisoProvider } from "../context/AvisoProvider"
 import CheckoutPage from "../pages/CheckoutPage"
+import { crearPedido } from "../lib/api"
+import { guardarVenta } from "../lib/historialVentas"
+
+// Sustituye los módulos REALES por dobles falsos (Vitest los "levanta" solo,
+// aunque los escribas después de los imports)
+vi.mock("../lib/api", () => ({
+  crearPedido: vi.fn(),
+  obtenerPedidos: vi.fn(),
+  cambiarEstadoPedido: vi.fn(),
+}))
+
+vi.mock("../lib/historialVentas", () => ({
+  guardarVenta: vi.fn(),
+  obtenerVentas: vi.fn(),
+  obtenerVentasApi: vi.fn(),
+  actualizarEstadoVenta: vi.fn(),
+  estadosVistaAApi: {},
+  filtrarPorPeriodo: vi.fn(),
+  calcularResumen: vi.fn(),
+}))
 
 const producto = {
   _id: "1",
@@ -38,6 +58,29 @@ function pintar(usuario = null) {
 
 function sembrarCarrito() {
   localStorage.setItem("carrito_v1", JSON.stringify([{ ...producto, cantidad: 1 }]))
+}
+
+// Recorre todo el camino: llena el form → abre el modal → confirma
+async function confirmarPedidoDesde({ usuario, nombre = "Ana López" }) {
+  sembrarCarrito()
+  pintar(usuario)
+
+  if (!usuario) {
+    fireEvent.change(screen.getByLabelText("Nombre completo"), {
+      target: { value: nombre },
+    })
+  }
+  // modo por defecto "llevar" (jsdom no tiene matchMedia) → pide teléfono
+  fireEvent.change(screen.getByLabelText("Teléfono"), {
+    target: { value: "3001234567" },
+  })
+  fireEvent.click(screen.getByText("Efectivo"))
+
+  const boton = screen.getByRole("button", { name: "Confirmar pedido" })
+  fireEvent.submit(boton.closest("form"))
+
+  await screen.findByText("¿Confirmar tu pedido?")
+  fireEvent.click(screen.getByText("Sí, confirmar"))
 }
 
 beforeEach(() => {
@@ -270,5 +313,53 @@ describe("CheckoutPage - modo Comer aquí", () => {
 
     expect(screen.getByText("⏱ Preparación")).toBeInTheDocument()
     expect(screen.getByText("~10 min")).toBeInTheDocument()
+  })
+})
+
+describe("CheckoutPage - envío del pedido al backend", () => {
+  beforeEach(() => {
+    vi.clearAllMocks() // cada test empieza con los contadores en 0
+  })
+
+  it("logueado: llama a crearPedido con el payload correcto", async () => {
+    await confirmarPedidoDesde({ usuario: { nombre: "Ana López" } })
+
+    await waitFor(() => expect(crearPedido).toHaveBeenCalledTimes(1))
+
+    const payload = crearPedido.mock.calls[0][0] // primer argumento del 1er llamado
+    expect(payload.nombreCompleto).toBe("Ana López")
+    expect(payload.items).toEqual([{ productId: "1", cantidad: 1 }])
+    expect(payload.metodoPago).toBe("efectivo") // "Efectivo" → minúsculas
+    expect(payload.direccionEntrega).toBe("Recoger en el local") // modo "llevar"
+    expect(guardarVenta).not.toHaveBeenCalled()
+
+    // éxito: el carrito se vacía
+    await waitFor(() =>
+      expect(JSON.parse(localStorage.getItem("carrito_v1") ?? "[]")).toHaveLength(0)
+    )
+  })
+
+  it("invitado: guarda en localStorage y NO toca el backend", async () => {
+    await confirmarPedidoDesde({ usuario: null })
+
+    await waitFor(() => expect(guardarVenta).toHaveBeenCalledTimes(1))
+    expect(crearPedido).not.toHaveBeenCalled()
+  })
+
+  it("si el POST falla: aviso de error y el carrito NO se vacía", async () => {
+    crearPedido.mockRejectedValueOnce({
+      response: { data: { mensaje: "Producto no disponible" } },
+    })
+
+    await confirmarPedidoDesde({ usuario: { nombre: "Ana López" } })
+
+    expect(
+      await screen.findByText("No se pudo confirmar el pedido")
+    ).toBeInTheDocument()
+    expect(screen.getByText("Producto no disponible")).toBeInTheDocument()
+
+    // el carrito sigue intacto: 1 producto
+    expect(JSON.parse(localStorage.getItem("carrito_v1"))).toHaveLength(1)
+    expect(sessionStorage.getItem("pedido_confirmado")).toBeNull()
   })
 })

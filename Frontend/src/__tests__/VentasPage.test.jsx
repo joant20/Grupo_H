@@ -1,6 +1,14 @@
-import { beforeEach, afterEach, describe, expect, it } from "vitest"
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { beforeEach, afterEach, describe, expect, it, vi } from "vitest"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import VentasPage from "../pages/admin/VentasPage"
+import { obtenerPedidos } from "../lib/api"
+
+// Sustituye el módulo API por dobles falsos: nada hace red de verdad
+vi.mock("../lib/api", () => ({
+  crearPedido: vi.fn(),
+  obtenerPedidos: vi.fn(),
+  cambiarEstadoPedido: vi.fn(),
+}))
 
 const CLAVE = "historial_ventas_v1"
 const hoy = new Date().toISOString()
@@ -39,7 +47,22 @@ const ventasSemilla = [
   },
 ]
 
+// Pedido COMO LO DEVUELVE EL BACKEND (formato MongoDB)
+const ordenBackend = {
+  _id: "abc123",
+  numero: "#00042",
+  createdAt: hoy,
+  nombreCompleto: "Carlos Ruiz",
+  modoPedido: "domicilio",
+  metodoPago: "tarjeta",
+  ultimos4: "4242",
+  total: 500,
+  productos: [{ nombre: "Pizza Hawaiana", cantidad: 1, precioUnitario: 500, subtotal: 500 }],
+  estado: "Recibido", // el backend manda "Recibido", la vista lo traduce a "nuevo"
+}
+
 beforeEach(() => {
+  vi.clearAllMocks()
   localStorage.clear()
   localStorage.setItem(CLAVE, JSON.stringify(ventasSemilla))
 })
@@ -98,5 +121,35 @@ describe("VentasPage - dashboard del dueño", () => {
     render(<VentasPage />)
 
     expect(screen.getByText(/Aún no hay ventas registradas/)).toBeInTheDocument()
+  })
+})
+
+describe("VentasPage - pedidos del backend (GET /api/orders)", () => {
+  it("mezcla los pedidos del backend con los locales y NO duplica", async () => {
+    localStorage.setItem("token", "token-falso") // sin token, obtenerVentasApi no llama al backend
+    // axios devuelve { data: [...] } — por eso el mock resuelve un objeto, no un arreglo
+    obtenerPedidos.mockResolvedValue({
+      data: [
+        { ...ordenBackend, numero: "#00001" }, // ¡igual que una local! → debe aparecer 1 sola vez
+        ordenBackend, // #00042 → nueva, viene del servidor
+      ],
+    })
+
+    render(<VentasPage />)
+
+    expect(await screen.findByText("#00042")).toBeInTheDocument() // la del backend se pinta
+    expect(screen.getAllByText("#00001")).toHaveLength(1) // la repetida, solo una
+    expect(obtenerPedidos).toHaveBeenCalledTimes(1) // se pidió al servidor 1 vez
+  })
+
+  it("si el backend falla, conserva las ventas locales", async () => {
+    localStorage.setItem("token", "token-falso")
+    obtenerPedidos.mockRejectedValue(new Error("sin red"))
+
+    render(<VentasPage />)
+
+    await waitFor(() => expect(obtenerPedidos).toHaveBeenCalledTimes(1))
+    expect(screen.getByText("#00001")).toBeInTheDocument() // lo local sigue ahí
+    expect(screen.getByText("$571.00")).toBeInTheDocument() // los totales no se borran
   })
 })

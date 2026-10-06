@@ -34,7 +34,7 @@ const claseVentasMovil = ({ isActive }) =>
       : "bg-orange-50 text-orange-700 hover:bg-orange-100 ring-1 ring-orange-200"
   }`
 
-function AdminLayout({ children }) {
+function AdminLayout({ usuario, children }) {
   const [abierto, setAbierto] = useState(false)
   const cerrar = () => setAbierto(false)
 
@@ -57,12 +57,19 @@ function AdminLayout({ children }) {
 
           {/* Escritorio: enlaces en fila */}
           <div className="hidden md:flex items-center gap-1">
+        {usuario?.rol === "admin" && (
+        <NavLink to="/admin/usuarios" className={claseLink}>
+        👥 Usuarios
+        </NavLink>
+        )}
             <NavLink to="/cocina" className={claseLink}>
               🍳 Cocina
             </NavLink>
+            {usuario?.rol === "admin" && (
             <NavLink to="/admin/ventas" className={claseVentas}>
-              💰 Ventas
-            </NavLink>
+            💰 Ventas
+          </NavLink>
+            )}
             <NavLink to="/menu" className={claseLink}>
               Ver sitio
             </NavLink>
@@ -85,12 +92,20 @@ function AdminLayout({ children }) {
         {/* Panel desplegable del menú móvil */}
         {abierto && (
           <div className="md:hidden mt-3 bg-white rounded-2xl shadow-lg p-2 flex flex-col gap-1">
+
+            {usuario?.rol === "admin" && (
+              <NavLink to="/admin/usuarios" onClick={cerrar} className={claseLinkMovil}>
+                <span aria-hidden="true">👥</span> Usuarios
+              </NavLink>
+            )}
             <NavLink to="/cocina" onClick={cerrar} className={claseLinkMovil}>
               <span aria-hidden="true">🍳</span> Cocina
             </NavLink>
-            <NavLink to="/admin/ventas" onClick={cerrar} className={claseVentasMovil}>
-              <span aria-hidden="true">💰</span> Ventas
-            </NavLink>
+            {usuario?.rol === "admin" && (
+  <NavLink to="/admin/ventas" onClick={cerrar} className={claseVentasMovil}>
+    <span aria-hidden="true">💰</span> Ventas
+  </NavLink>
+)}
             <NavLink to="/menu" onClick={cerrar} className={claseLinkMovil}>
               <span aria-hidden="true">🍕</span> Ver sitio
             </NavLink>
