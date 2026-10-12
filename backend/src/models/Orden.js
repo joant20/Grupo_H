@@ -62,9 +62,9 @@ const ordenSchema = mongoose.Schema({
         required:true,
         enum:['efectivo','tarjeta','transferencia']
     },
-    estado:{
-        type:String,
-        enum:['Recibido','En preparación','En camino','Entregado','Cancelado'],
+    estado: {
+        type: String,
+        enum: ['Recibido', 'En Preparación', 'En camino', 'Listo para despacho', 'Entregado', 'Cancelado'],
         default: 'Recibido'
     }
 }, {

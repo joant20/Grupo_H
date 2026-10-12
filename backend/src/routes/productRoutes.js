@@ -13,14 +13,15 @@ const {
 const verificarToken = require('../middlewares/authMiddleware');
 const soloAdmin = require('../middlewares/soloAdmin');
 const upload = require('../middlewares/uploadCloudinary');
+const autorizaRoles = require('../middlewares/autorizaRoles');
 
 // Las rutas GET son públicas: cualquiera puede ver el catálogo sin loguearse
 // Las de escritura requieren estar autenticado (verificarToken) y ser admin (soloAdmin)
 
-router.post('/', verificarToken, soloAdmin, upload.single('imagen'), crearProducto);
+router.post('/', verificarToken, autorizaRoles('admin'),soloAdmin, upload.single('imagen'), crearProducto);
 router.get('/', listarProductos);
 router.get('/:id', obtenerProducto);
 router.put('/:id', verificarToken, soloAdmin, upload.single('imagen'), actualizarProducto);
-router.patch('/:id/desactivar', verificarToken, soloAdmin, desactivarProducto);
+router.patch('/:id/desactivar', verificarToken,autorizaRoles('admin'), soloAdmin, desactivarProducto);
 
 module.exports = router;

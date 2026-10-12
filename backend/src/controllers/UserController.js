@@ -92,8 +92,56 @@ const login = async (req, res) => {
   }
 };
 
+
+// POST /api/users/cocina  (solo admin)
+const crearUsuarioCocina = async (req, res) => {
+  try {
+    const { nombre, email, password } = req.body;
+
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ mensaje: 'Nombre, email y contraseña son obligatorios' });
+    }
+
+    if (password.length < 6) {
+      return res.status(400).json({ mensaje: 'La contraseña debe tener al menos 6 caracteres' });
+    }
+
+    const existeUsuario = await User.findOne({ email });
+    if (existeUsuario) {
+      return res.status(409).json({ mensaje: 'Ese email ya está registrado' });
+    }
+
+    const nuevoUsuario = new User({
+      nombre,
+      email,
+      password,
+      rol: 'cocina' // forzado: este endpoint solo crea personal de cocina
+    });
+
+    await nuevoUsuario.save();
+
+    // No se devuelve token: quien inicia sesión es el cocinero, con su propio login
+    res.status(201).json({
+      mensaje: 'Usuario de cocina creado correctamente',
+      usuario: {
+        id: nuevoUsuario._id,
+        nombre: nuevoUsuario.nombre,
+        email: nuevoUsuario.email,
+        rol: nuevoUsuario.rol
+      }
+    });
+  } catch (error) {
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ mensaje: 'Datos inválidos', error: error.message });
+    }
+    res.status(500).json({ mensaje: 'Error al crear el usuario de cocina', error: error.message });
+  }
+};
+
+
 // Al final del archivo, exportas TODAS las funciones juntas
 module.exports = {
   registrar,
-  login
+  login,
+  crearUsuarioCocina 
 };

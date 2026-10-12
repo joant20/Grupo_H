@@ -92,8 +92,51 @@ const obtenerPedido = async (req, res) => {
     }
 };
 
+
+const ORDEN_ESTADOS = ['Recibido', 'En Preparación', 'Listo para despacho']; 
+
+const actualizarEstadoPedido = async (req, res) => {
+  try {
+    const { estado } = req.body;
+
+    if (!estado) {
+      return res.status(400).json({ mensaje: 'El nuevo estado es obligatorio' });
+    }
+
+    if (!ORDEN_ESTADOS.includes(estado)) {
+      return res.status(400).json({ mensaje: `Estado inválido. Valores permitidos: ${ORDEN_ESTADOS.join(', ')}` });
+    }
+
+    const pedido = await Orden.findById(req.params.id);
+
+    if (!pedido) {
+      return res.status(404).json({ mensaje: 'Pedido no encontrado' });
+    }
+
+    const indiceActual = ORDEN_ESTADOS.indexOf(pedido.estado);
+    const indiceNuevo = ORDEN_ESTADOS.indexOf(estado);
+
+    if (indiceNuevo !== indiceActual + 1) {
+      return res.status(400).json({
+        mensaje: `No se puede pasar de "${pedido.estado}" a "${estado}". El siguiente estado válido es "${ORDEN_ESTADOS[indiceActual + 1] || 'ninguno, ya está en el último estado'}"`
+      });
+    }
+
+    pedido.estado = estado;
+    await pedido.save();
+
+    res.json({ mensaje: 'Estado actualizado correctamente', pedido });
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res.status(400).json({ mensaje: 'ID de pedido inválido' });
+    }
+    res.status(500).json({ mensaje: 'Error al actualizar el estado', error: error.message });
+  }
+};
+
 module.exports = {
     crearPedido,
     listarPedidos,
-    obtenerPedido
+    obtenerPedido,
+    actualizarEstadoPedido 
 };
