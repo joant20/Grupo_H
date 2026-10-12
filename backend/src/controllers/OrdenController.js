@@ -50,7 +50,6 @@ const crearPedido = async (req, res) => {
             subtotal,
             total,
             direccionEntrega,
-            metodoPago,
             metodoPago: metodoPagoNormalizado,
             numero,
             modoPedido,
