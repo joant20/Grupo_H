@@ -4,11 +4,18 @@ const Orden = require('../models/Orden')
 // POST /api/orders
 const crearPedido = async (req, res) => {
     try {
-        const { items, nombreCompleto, direccionEntrega, metodoPago } = req.body;
+        const { items, nombreCompleto, direccionEntrega, metodoPago, numero, modoPedido, telefono, notas, ultimos4 } = req.body;
 
         if (!items || items.length === 0) {
             return res.status(400).json({ mensaje: 'El pedido debe tener al menos un producto' });
         }
+
+        if (!metodoPago) {
+            return res.status(400).json({ mensaje: 'El método de pago es obligatorio' });
+        }
+
+        // "Efectivo", "TARJETA", " tarjeta " -> "efectivo" / "tarjeta"
+        const metodoPagoNormalizado = String(metodoPago).trim().toLowerCase();
 
         const productosDelPedido = [];
         let subtotal = 0;
@@ -43,13 +50,22 @@ const crearPedido = async (req, res) => {
             subtotal,
             total,
             direccionEntrega,
-            metodoPago
+            metodoPago,
+            metodoPago: metodoPagoNormalizado,
+            numero,
+            modoPedido,
+            telefono,
+            notas,
+            ultimos4
         });
 
         await nuevoPedido.save();
         res.status(201).json(nuevoPedido);
 
     } catch (error) {
+        if (error.name === 'ValidationError') {
+        return res.status(400).json({ mensaje: 'Datos inválidos', error: error.message });
+        }
         res.status(500).json({ mensaje: 'Error al crear el pedido', error: error.message });
     }
 };
@@ -59,8 +75,10 @@ const listarPedidos = async (req, res) => {
     try {
         let filtro = {};
 
-        if (req.usuario.rol !== 'admin') {
+        if (req.usuario.rol === 'cliente') {
             filtro.usuario = req.usuario.id;
+        } else if (req.usuario.rol === 'cocina') {
+            filtro.estado = { $nin: ['Entregado', 'Cancelado'] };
         }
 
         const pedidos = await Orden.find(filtro).sort({ createdAt: -1 });
@@ -79,7 +97,7 @@ const obtenerPedido = async (req, res) => {
             return res.status(404).json({ mensaje: 'Pedido no encontrado' });
         }
 
-        if (req.usuario.rol !== 'admin' && pedido.usuario.toString() !== req.usuario.id) {
+        if (req.usuario.rol === 'cliente' && pedido.usuario.toString() !== req.usuario.id) {
             return res.status(403).json({ mensaje: 'No tienes permiso para ver este pedido' });
         }
 

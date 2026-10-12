@@ -60,13 +60,38 @@ const ordenSchema = mongoose.Schema({
     metodoPago :{
         type:String,
         required:true,
+        lowercase: true,
+        trim: true,
         enum:['efectivo','tarjeta','transferencia']
     },
     estado: {
         type: String,
         enum: ['Recibido', 'En Preparación', 'En camino', 'Listo para despacho', 'Entregado', 'Cancelado'],
         default: 'Recibido'
-    }
+    },
+    numero: {
+        type: String,
+        trim: true
+        },
+    modoPedido: {
+        type: String,
+        trim: true,
+        lowercase: true
+        },
+    telefono: {
+        type: String,
+        trim: true
+        },
+     notas: {
+        type: String,
+        trim: true,
+        default: ''
+        },
+     ultimos4: {
+        type: String,
+        default: '',
+        match: [/^\d{4}$/, 'ultimos4 debe tener exactamente 4 dígitos']
+        },
 }, {
     timestamps:true
 })
