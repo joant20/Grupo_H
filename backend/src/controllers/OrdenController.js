@@ -1,6 +1,19 @@
 const Product = require('../models/Product')
 const Orden = require('../models/Orden')
 
+
+// GET /api/orders/mis-pedidos
+const misPedidos = async (req, res) => {
+    try {
+        const pedidos = await Orden.find({ usuario: req.usuario.id })
+            .sort({ createdAt: -1 }); // los más recientes primero
+
+        res.json(pedidos);
+    } catch (error) {
+        res.status(500).json({ mensaje: 'Error al obtener tus pedidos', error: error.message });
+    }
+};
+
 // POST /api/orders
 const crearPedido = async (req, res) => {
     try {
@@ -155,5 +168,6 @@ module.exports = {
     crearPedido,
     listarPedidos,
     obtenerPedido,
-    actualizarEstadoPedido 
+    actualizarEstadoPedido ,
+    misPedidos
 };
