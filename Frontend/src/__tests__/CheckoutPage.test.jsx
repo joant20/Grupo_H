@@ -13,15 +13,19 @@ import { MemoryRouter } from "react-router-dom"
 import { CarritoProvider } from "../context/CarritoProvider"
 import { AvisoProvider } from "../context/AvisoProvider"
 import CheckoutPage from "../pages/CheckoutPage"
-import { crearPedido } from "../lib/api"
+import { crearPedido, crearPedidoInvitado, actualizarMiPerfil } from "../lib/api"
 import { guardarVenta } from "../lib/historialVentas"
+import { leerPedidoInvitado } from "../lib/pedidoInvitado"
+import { activarPushPedido } from "../lib/notificaciones"
 
 // Sustituye los módulos REALES por dobles falsos (Vitest los "levanta" solo,
 // aunque los escribas después de los imports)
 vi.mock("../lib/api", () => ({
   crearPedido: vi.fn(),
+  crearPedidoInvitado: vi.fn(),
   obtenerPedidos: vi.fn(),
   cambiarEstadoPedido: vi.fn(),
+  actualizarMiPerfil: vi.fn(),
 }))
 
 vi.mock("../lib/historialVentas", () => ({
@@ -32,6 +36,13 @@ vi.mock("../lib/historialVentas", () => ({
   estadosVistaAApi: {},
   filtrarPorPeriodo: vi.fn(),
   calcularResumen: vi.fn(),
+}))
+
+// Espiamos las notificaciones: nos importa que se pidan los push DESPUÉS de
+// pagar (requisito del maestro) y que no se pidan si el pedido falló.
+vi.mock("../lib/notificaciones", () => ({
+  pedirPermiso: vi.fn().mockResolvedValue("granted"),
+  activarPushPedido: vi.fn().mockResolvedValue(true),
 }))
 
 const producto = {
@@ -339,11 +350,23 @@ describe("CheckoutPage - envío del pedido al backend", () => {
     )
   })
 
-  it("invitado: guarda en localStorage y NO toca el backend", async () => {
+  it("invitado: crea el pedido SIN cuenta (#76) y guarda su clave", async () => {
+    // El backend le devuelve id + clave secreta para verlo sin login
+    crearPedidoInvitado.mockResolvedValueOnce({
+      data: { _id: "abc123", claveInvitado: "clave-secreta" },
+    })
+
     await confirmarPedidoDesde({ usuario: null })
 
-    await waitFor(() => expect(guardarVenta).toHaveBeenCalledTimes(1))
+    await waitFor(() => expect(crearPedidoInvitado).toHaveBeenCalledTimes(1))
     expect(crearPedido).not.toHaveBeenCalled()
+    expect(guardarVenta).toHaveBeenCalledTimes(1)
+
+    // Guarda id + clave en este navegador para verlo en /mis-pedidos
+    expect(leerPedidoInvitado()).toMatchObject({
+      _id: "abc123",
+      clave: "clave-secreta",
+    })
   })
 
   it("si el POST falla: aviso de error y el carrito NO se vacía", async () => {
@@ -361,5 +384,94 @@ describe("CheckoutPage - envío del pedido al backend", () => {
     // el carrito sigue intacto: 1 producto
     expect(JSON.parse(localStorage.getItem("carrito_v1"))).toHaveLength(1)
     expect(sessionStorage.getItem("pedido_confirmado")).toBeNull()
+  })
+})
+
+describe("CheckoutPage - activa los push del backend al pagar", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("logueado: se suscribe al push con el id del pedido creado", async () => {
+    // El backend responde con el pedido real (trae su _id)
+    crearPedido.mockResolvedValueOnce({ data: { _id: "pedido456" } })
+
+    await confirmarPedidoDesde({ usuario: { nombre: "Ana López" } })
+
+    await waitFor(() =>
+      expect(activarPushPedido).toHaveBeenCalledWith("pedido456", null)
+    )
+  })
+
+  it("invitado: se suscribe con su id y su clave secreta (#76)", async () => {
+    crearPedidoInvitado.mockResolvedValueOnce({
+      data: { _id: "abc123", claveInvitado: "clave-secreta" },
+    })
+
+    await confirmarPedidoDesde({ usuario: null })
+
+    await waitFor(() =>
+      expect(activarPushPedido).toHaveBeenCalledWith("abc123", "clave-secreta")
+    )
+  })
+
+  it("si el pedido FALLA: NO se suscribe a los push (solo se avisa al que pagó)", async () => {
+    crearPedido.mockRejectedValueOnce({
+      response: { data: { mensaje: "Producto no disponible" } },
+    })
+
+    await confirmarPedidoDesde({ usuario: { nombre: "Ana López" } })
+
+    await screen.findByText("No se pudo confirmar el pedido")
+    expect(activarPushPedido).not.toHaveBeenCalled()
+  })
+})
+
+describe("CheckoutPage - datos del cliente logueado", () => {
+  it("NO vuelve a pedir teléfono si el perfil ya lo trae", () => {
+    sembrarCarrito()
+    pintar({ nombre: "Ana López", telefono: "2221234567" })
+
+    // jsdom sin matchMedia → modo inicial "llevar" (solo pide teléfono)
+    expect(screen.queryByLabelText("Teléfono")).not.toBeInTheDocument()
+    expect(screen.getByText("2221234567")).toBeInTheDocument()
+  })
+
+  it("NO vuelve a pedir dirección si el perfil ya la trae", () => {
+    sembrarCarrito()
+    pintar({
+      nombre: "Ana López",
+      telefono: "2221234567",
+      direccion: "Calle Uno 123, Colonia Centro",
+    })
+
+    fireEvent.click(screen.getByText("A domicilio"))
+
+    expect(screen.queryByLabelText("Dirección")).not.toBeInTheDocument()
+    expect(screen.getByText("Calle Uno 123, Colonia Centro")).toBeInTheDocument()
+    // Cada dato guardado se puede editar con su botón "Cambiar"
+    expect(screen.getAllByRole("button", { name: "Cambiar" }).length).toBe(2)
+  })
+
+  it("pide la dirección si el perfil está vacío", () => {
+    sembrarCarrito()
+    pintar({ nombre: "Ana López", telefono: "2221234567" })
+
+    fireEvent.click(screen.getByText("A domicilio"))
+
+    expect(screen.getByLabelText("Dirección")).toBeInTheDocument()
+  })
+
+  it("al confirmar guarda en el perfil los datos de entrega nuevos", async () => {
+    actualizarMiPerfil.mockResolvedValueOnce({
+      data: { usuario: { nombre: "Ana López", telefono: "3001234567", direccion: "" } },
+    })
+
+    await confirmarPedidoDesde({ usuario: { nombre: "Ana López" } })
+
+    await waitFor(() =>
+      expect(actualizarMiPerfil).toHaveBeenCalledWith({ telefono: "3001234567" })
+    )
+    expect(crearPedido).toHaveBeenCalledTimes(1)
   })
 })

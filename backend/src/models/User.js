@@ -1,3 +1,10 @@
+/**
+ * MODELO DE USUARIO (cuentas de la app)
+ *
+ * Guarda a los clientes, al personal de cocina y a los administradores.
+ * La contraseña NUNCA se guarda tal cual: se encripta antes de guardarla
+ * (más abajo, en el hook "pre('save')").
+ */
 const mongoose=require('mongoose')
 const bcrypt = require('bcrypt')
 
@@ -11,9 +18,10 @@ const userSchema = new mongoose.Schema({
         type:String,
         required:true,
         trim:true,
-        unique:true,
+        unique:true,   // no puede haber dos cuentas con el mismo correo
         lowercase:true
     },
+    // La contraseña guardada es el HASH (no el texto original)
     password: {
         type:String,
         required:true,
@@ -24,6 +32,7 @@ const userSchema = new mongoose.Schema({
     fechaNacimiento:{
         type:Date
     },
+    // El teléfono sirve para el WhatsApp de seguimiento del pedido (HU07)
     telefono:{
         type:String,
         trim:true,
@@ -34,11 +43,13 @@ const userSchema = new mongoose.Schema({
         trim:true,
         default:''
     },
+    // Se usa como dirección de entrega por defecto en el checkout
     direccion:{
         type:String,
         trim:true,
         default:''
     },
+    // cliente = compra | cocina = ve el panel /cocina | admin = ve todo
     rol: {
         type:String,
         enum: ['cliente','cocina','admin'],

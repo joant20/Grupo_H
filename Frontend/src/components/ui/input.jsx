@@ -1,3 +1,8 @@
+// Input: campo de texto de una sola línea (email, contraseña, precio...).
+// Pinta label + input + error. No valida nada: eso lo hace zod en la página.
+// register viene de react-hook-form (register("campo")) y con {...register}
+// el formulario se queda con lo que escribe el usuario.
+// error = errors.campo; si existe se muestra el mensaje en rojo.
 function Input({ label, id, type = "text", register, error, placeholder }) {
   return (
     <div className="mb-4">

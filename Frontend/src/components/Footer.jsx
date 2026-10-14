@@ -71,8 +71,8 @@ function Footer({ usuario, onLogout }) {
           <h3 className="text-white font-semibold mb-3">Contacto</h3>
           <ul className="space-y-2 text-sm text-gray-400">
             <li>📧 hola@foodapp.com</li>
-            <li>📱 +57 300 123 4567</li>
-            <li>📍 Calle 10 #5-20, Bogotá</li>
+            <li>📱 1 + 809 123 4567</li>
+            <li>📍 Santo Domingo, República Dominicana</li>
             <li>🕐 Lun a Dom: 10:00 a.m. - 10:00 p.m.</li>
           </ul>
         </div>

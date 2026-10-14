@@ -1,3 +1,10 @@
+/**
+ * PÁGINA DE REGISTRO (/registro)
+ *
+ * Crea una cuenta de cliente: valida los campos con zod (incluido que las
+ * dos contraseñas coincidan) y los manda a POST /api/users/register.
+ * Al terminar inicia sesión sola y lleva al inicio.
+ */
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
@@ -8,6 +15,7 @@ import FloatingMenu from "../components/FloatingMenu"
 import { registrarUsuario } from "../lib/api"
 import { useAviso } from "../hooks/useAviso"
 
+// Campos que el formulario exige antes de mandar el registro
 const schema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Ingresa un email válido"),
@@ -54,7 +62,7 @@ function RegisterPage({ onRegister, usuario, onLogout }) {
     <div className="min-h-screen bg-[#fef9f0] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl">
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
-          Crear Cuenta
+          📝 Crear Cuenta
         </h1>
         <p className="text-gray-500 text-center mb-6">
           Regístrate para ordenar tu comida favorita

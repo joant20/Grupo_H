@@ -1,3 +1,10 @@
+/**
+ * MODAL DE DETALLE DEL PRODUCTO
+ *
+ * Ventana emergente con la info completa de una comida (foto, descripción,
+ * precio y botón de agregar al carrito).
+ * Se cierra con clic fuera del modal o con la tecla Escape.
+ */
 import { useEffect } from "react"
 
 function ProductoDetalle({ producto, onCerrar, onAgregar }) {

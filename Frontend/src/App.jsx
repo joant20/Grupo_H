@@ -1,5 +1,21 @@
+/**
+ * APP - el "plano" de toda la aplicación (Grupo H)
+ *
+ * Qué hace:
+ *  1. Guarda la sesión del usuario (usuario + token) en localStorage, así que
+ *     aunque recargues la página sigues logueado.
+ *  2. Enruta: cada dirección del navegador ("/menu", "/carrito"...) muestra
+ *     una página distinta.
+ *  3. Protege las rutas del panel con <AdminRoute>, que deja pasar solo a
+ *     admin y cocina.
+ *
+ * Orden de envoltura (importante):
+ *   AvisoProvider (modales de avisos) → CarritoProvider (estado del carrito)
+ *   → BrowserRouter (rutas) → páginas
+ * Todo lo de adentro puede usar useAviso(), useCarrito() y los enlaces.
+ */
 import { BrowserRouter, Routes, Route } from "react-router-dom"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import LoginPage from "./pages/LoginPage"
 import RegisterPage from "./pages/RegisterPage"
 import HomePage from "./pages/HomePage"
@@ -43,6 +59,14 @@ const handleLogout = () => {
   localStorage.removeItem("token")              
   setUsuario(null)
 }
+
+// El checkout actualiza teléfono/dirección del perfil: hay que reflejarlo aquí
+// para que la próxima compra ya salga con los datos nuevos sin recargar
+useEffect(() => {
+  const alActualizarPerfil = (evento) => setUsuario(evento.detail)
+  window.addEventListener("perfil:actualizado", alActualizarPerfil)
+  return () => window.removeEventListener("perfil:actualizado", alActualizarPerfil)
+}, [])
 
   return (
     <AvisoProvider>

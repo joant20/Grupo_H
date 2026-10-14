@@ -1,3 +1,11 @@
+/**
+ * PÁGINA "PEDIDO CONFIRMADO" (/pedido/confirmado)
+ *
+ * Pantalla de éxito después de comprar: muestra el número del pedido, el
+ * tiempo estimado, el resumen de lo comprado y los datos de entrega.
+ * El pedido llega por navigate(...); si recargas con F5 lo recupera de
+ * sessionStorage (clave "pedido_confirmado").
+ */
 import { Link, useLocation, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
 
@@ -182,6 +190,14 @@ function PedidoConfirmadoPage({ usuario, onLogout }) {
         >
           🧾 Ver ticket
         </button>
+        {/* Seguimiento en vivo (HU06): el cliente ve su pedido cambiar de
+            estado, y el INVITADO también (su pedido de este navegador) */}
+        <Link
+          to="/mis-pedidos"
+          className="block w-full text-center bg-white border-2 border-orange-600 text-orange-600 hover:bg-orange-50 font-bold py-3 rounded-lg shadow-md transition-all duration-200"
+        >
+          📦 Ver mi pedido en vivo
+        </Link>
         <Link
           to="/menu"
           className="block w-full text-center bg-orange-600 hover:bg-orange-500 text-white py-3 rounded-lg font-medium mt-3"

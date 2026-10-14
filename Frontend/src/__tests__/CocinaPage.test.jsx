@@ -94,4 +94,68 @@ describe("CocinaPage - comandas desde el backend", () => {
     expect(await screen.findByText(/Preparando/)).toBeInTheDocument() // ya no dice "Nuevo"
     expect(obtenerPedidos.mock.calls.length).toBeGreaterThanOrEqual(2) // refrescar() pidió otra vez
   })
+
+  it("el botón 'Marcar entregado' cierra el pedido con estado Entregado", async () => {
+    obtenerPedidos
+      .mockResolvedValueOnce({ data: [{ ...ordenApi, estado: "Listo para recoger" }] })
+      .mockResolvedValue({ data: [{ ...ordenApi, estado: "Entregado" }] })
+
+    pintar()
+    fireEvent.click(await screen.findByRole("button", { name: /Marcar entregado/ }))
+
+    // es lo que dispara el aviso de "pedido entregado" en el cliente
+    await waitFor(() =>
+      expect(cambiarEstadoPedido).toHaveBeenCalledWith("abc123", "Entregado")
+    )
+    expect(await screen.findByText(/Entregado/)).toBeInTheDocument()
+  })
+})
+
+describe("CocinaPage - pedido en camino (#59 / #60)", () => {
+  it("un pedido a domicilio pregunta en cuántos minutos llega", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...ordenApi, modoPedido: "domicilio", estado: "En preparación" }],
+    })
+
+    pintar()
+
+    // El pedido ya está preparándose: el botón cambia a "en camino"
+    expect(await screen.findByRole("button", { name: /Marcar en camino/ })).toBeInTheDocument()
+    expect(screen.getByLabelText(/Llega en/)).toBeInTheDocument()
+  })
+
+  it("envía los minutos al backend junto con el estado", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...ordenApi, modoPedido: "domicilio", estado: "En preparación" }],
+    })
+
+    pintar()
+    fireEvent.change(await screen.findByLabelText(/Llega en/), {
+      target: { value: "40" },
+    })
+    fireEvent.click(screen.getByRole("button", { name: /Marcar en camino/ }))
+
+    await waitFor(() =>
+      expect(cambiarEstadoPedido).toHaveBeenCalledWith("abc123", "En camino", {
+        estimacionMinutos: 40,
+      })
+    )
+  })
+
+  it("un pedido para llevar cambia de estado sin pedir minutos", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...ordenApi, modoPedido: "llevar", estado: "En preparación" }],
+    })
+
+    pintar()
+    fireEvent.click(await screen.findByRole("button", { name: /Marcar listo/ }))
+
+    // Sin estimación: la llamada va igual que siempre (2 argumentos)
+    await waitFor(() =>
+      expect(cambiarEstadoPedido).toHaveBeenCalledWith(
+        "abc123",
+        "Listo para recoger"
+      )
+    )
+  })
 })

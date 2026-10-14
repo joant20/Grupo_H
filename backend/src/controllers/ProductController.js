@@ -1,3 +1,15 @@
+/**
+ * CONTROLADOR DE PRODUCTOS (las "recetas" de /api/products)
+ *
+ *  - crearProducto......... POST  /api/products             (solo admin)
+ *  - listarProductos....... GET   /api/products             (menú público)
+ *  - obtenerProducto....... GET   /api/products/:id
+ *  - actualizarProducto.... PUT   /api/products/:id         (solo admin)
+ *  - desactivarProducto.... PATCH /api/products/:id/desactivar (solo admin)
+ *
+ * "Desactivar" no borra el platillo: solo lo marca como agotado
+ * (disponible: false) para que no se pueda pedir.
+ */
 const Product = require('../models/Product');
 
 // POST /api/products  (solo admin)

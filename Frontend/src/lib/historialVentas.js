@@ -8,7 +8,8 @@ const estadosApiAVista = {
   Recibido: "nuevo",
   "En preparación": "preparando",
   "En camino": "listo",
-  Entregado: "listo",
+  "Listo para recoger": "listo",
+  Entregado: "entregado",
   Cancelado: "cancelado",
 }
 
@@ -16,6 +17,20 @@ export const estadosVistaAApi = {
   nuevo: "Recibido",
   preparando: "En preparación",
   listo: "En camino",
+  entregado: "Entregado",
+}
+
+/**
+ * "Listo" significa cosas distintas según el pedido:
+ *  · a domicilio → salió hacia el cliente ("En camino")
+ *  · para llevar / comer aquí → ya se puede pasar a recogerlo
+ *    ("Listo para recoger", el estado que dispara el aviso del ticket)
+ */
+export function estadoApiDe(estadoVista, modoPedido) {
+  if (estadoVista === "listo" && modoPedido && modoPedido !== "domicilio") {
+    return "Listo para recoger"
+  }
+  return estadosVistaAApi[estadoVista] ?? "En preparación"
 }
 
 // Convierte una Orden del backend al formato que usan VentasPage y CocinaPage
@@ -30,6 +45,9 @@ function mapearOrdenAVenta(orden) {
     metodoPago: metodo.charAt(0).toUpperCase() + metodo.slice(1),
     ultimos4: orden.ultimos4 ?? null,
     total: orden.total,
+    // Pedido en camino: cuántos minutos estima el repartidor y a qué hora salió
+    estimacionMinutos: orden.estimacionMinutos ?? null,
+    enCaminoDesde: orden.enCaminoDesde ?? null,
     productos: (orden.productos ?? []).map((p) => ({
       nombre: p.nombre,
       cantidad: p.cantidad,

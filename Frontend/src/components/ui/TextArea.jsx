@@ -1,3 +1,8 @@
+// TextArea: campo de varias líneas, igual que Input pero para párrafos
+// (descripción del producto, notas para el repartidor).
+// rows = cuántas líneas de alto (default 3).
+// register = de react-hook-form; error = errors.campo (mensaje en rojo).
+// La validación (zod) la hace la página padre, no este componente.
 function TextArea({ label, id, rows = 3, register, error }) {
   return (
     <div className="mb-4">

@@ -1,3 +1,14 @@
+/**
+ * ADMINISTRACIÓN DE PRODUCTOS (/admin/productos, solo admin)
+ *
+ * Panel para mantener el menú:
+ *  - Tabla con todos los platillos y su estado (disponible / agotado).
+ *  - Filtros: todos, activos o agotados.
+ *  - Botón en la tabla para cambiar el estado sin entrar al formulario.
+ *  - Formulario para crear o editar (nombre, descripción, precio, categoría,
+ *    tiempo, calorías, imagen por URL y si está disponible o destacado).
+ * Todo viaja al backend con el hook useProductos (POST/PUT/PATCH /api/products).
+ */
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -9,6 +20,7 @@ import Select from "../../components/ui/Select"
  import { useAviso } from "../../hooks/useAviso"
 
 
+// Categorías que ofrece el formulario (deben coincidir con las del menú)
 const categoriasDisponibles = [
   "Entradas",
   "Platos Fuertes",
@@ -134,7 +146,7 @@ function AdminProductos() {
     <div className="min-h-screen bg-[#fef9f0]">
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Gestión de Productos</h1>
+          <h1 className="text-2xl font-bold text-gray-800">🍔 Gestión de Productos</h1>
           {!mostrarFormulario && (
             <button
               onClick={() => { resetForm(); setMostrarFormulario(true) }}

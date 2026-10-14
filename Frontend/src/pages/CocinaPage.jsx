@@ -1,9 +1,22 @@
+/**
+ * COCINA - Tablero de comandas (Sprint 4)
+ *
+ * - Ver las comandas ACTIVAS del restaurante (el backend las filtra).
+ * - Cambiar el estado con la secuencia:
+ *     nuevo → preparando → listo → entregado   (+ cancelar)
+ *   El cambio viaja a PATCH /api/orders/:id/estado (solo cocina/admin) y el
+ *   backend muestra el aviso del cliente en su pantalla (HU07).
+ * - En los pedidos A DOMICILIO, antes de marcarlos "en camino" la cocina
+ *   indica en cuántos minutos llega el repartidor (issues #59 y #60):
+ *   ese número viaja al backend y el cliente lo ve en Mis Pedidos.
+ * - estadoApiDe() traduce el estado del panel al enum del backend.
+ */
 import { useState, useEffect, useCallback } from "react"
 import {
   obtenerVentas,
   obtenerVentasApi,
   actualizarEstadoVenta,
-  estadosVistaAApi,
+  estadoApiDe,
 } from "../lib/historialVentas"
 import { cambiarEstadoPedido } from "../lib/api"
 import { useAviso } from "../hooks/useAviso"
@@ -16,18 +29,23 @@ const estados = {
   nuevo: { texto: "Nuevo", clase: "bg-blue-100 text-blue-700", icono: "🆕" },
   preparando: { texto: "Preparando", clase: "bg-yellow-100 text-yellow-700", icono: "👨‍🍳" },
   listo: { texto: "Listo", clase: "bg-green-100 text-green-700", icono: "✅" },
+  entregado: { texto: "Entregado", clase: "bg-green-100 text-green-700", icono: "🏁" },
   cancelado: { texto: "Cancelado", clase: "bg-red-100 text-red-700", icono: "❌" },
 }
 
 const siguienteEstado = {
   nuevo: "preparando",
   preparando: "listo",
+  listo: "entregado",
 }
 
 const botonesEstado = {
   nuevo: { texto: "👨‍🍳 Empezar preparación", clase: "bg-yellow-500 hover:bg-yellow-600" },
+  // A domicilio "listo" significa que salió → el botón lo dice así (#59/#60)
   preparando: { texto: "✅ Marcar listo", clase: "bg-green-600 hover:bg-green-700" },
-  listo: null,
+  preparandoDomicilio: { texto: "🛵 Marcar en camino", clase: "bg-green-600 hover:bg-green-700" },
+  listo: { texto: "🏁 Marcar entregado", clase: "bg-green-700 hover:bg-green-800" },
+  entregado: null,
 }
 
 
@@ -39,7 +57,16 @@ const textosModo = {
 }
 
 function ComandaCard({ venta, onCambiarEstado }) {
-  const estado = estados[venta.estado] ?? estados.nuevo
+  // Minutos que el repartidor tarda en llegar a domicilio (#59/#60).
+  // La cocina los ajusta aquí antes de marcar el pedido "en camino".
+  const [minutosLlegada, setMinutosLlegada] = useState(25)
+
+  const estadoActual = venta.estado ?? "nuevo"
+  const estado = estados[estadoActual] ?? estados.nuevo
+
+  // Un pedido a domicilio que está preparándose pasa a "En camino" (no a "Listo")
+  const pasandoAEnCamino =
+    estadoActual === "preparando" && venta.modoPedido === "domicilio"
 
   const hora = new Date(venta.fecha).toLocaleTimeString("es-MX", {
     hour: "2-digit",
@@ -97,16 +124,55 @@ function ComandaCard({ venta, onCambiarEstado }) {
         </span>
       </div>
 
+      {/* Pedido ya en camino: recordatorio de la estimación que se le dio al cliente */}
+      {estadoActual === "listo" &&
+        venta.modoPedido === "domicilio" &&
+        venta.estimacionMinutos > 0 && (
+          <p className="px-4 pb-3 text-xs text-gray-500">
+            🛵 El cliente fue avisado: llega en ~{Math.round(venta.estimacionMinutos)} min
+          </p>
+        )}
+
       {/* Botón de estado */}
-      {(siguienteEstado[venta.estado ?? "nuevo"]) && (
+      {siguienteEstado[estadoActual] && (
         <div className="px-4 pb-4">
+          {/* #60: antes de mandarlo a domicilio, la cocina dice en cuántos minutos llega */}
+          {pasandoAEnCamino && (
+            <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+              <label htmlFor={`eta-${venta.numero}`}>⏱ Llega en ~</label>
+              <input
+                id={`eta-${venta.numero}`}
+                type="number"
+                min="1"
+                max="240"
+                value={minutosLlegada}
+                onChange={(e) => setMinutosLlegada(e.target.value)}
+                className="w-20 border border-gray-200 rounded-lg px-2 py-1 text-center"
+              />
+              <span>min</span>
+            </div>
+          )}
+
           <button
-            onClick={() => onCambiarEstado(venta.numero, siguienteEstado[venta.estado ?? "nuevo"])}
+            onClick={() =>
+              onCambiarEstado(
+                venta.numero,
+                siguienteEstado[estadoActual],
+                // Solo a domicilio viaja la estimación; el resto va igual que siempre
+                pasandoAEnCamino
+                  ? { estimacionMinutos: Number(minutosLlegada) || 25 }
+                  : undefined
+              )
+            }
             className={`w-full text-white font-medium py-2 rounded-lg transition-colors cursor-pointer ${
-              botonesEstado[venta.estado ?? "nuevo"].clase
+              (pasandoAEnCamino
+                ? botonesEstado.preparandoDomicilio
+                : botonesEstado[estadoActual]).clase
             }`}
           >
-            {botonesEstado[venta.estado ?? "nuevo"].texto}
+            {(pasandoAEnCamino
+              ? botonesEstado.preparandoDomicilio
+              : botonesEstado[estadoActual]).texto}
           </button>
         </div>
       )}
@@ -134,11 +200,16 @@ function CocinaPage() {
     ])
   }, [])
 
-  // Refresco automático cada 5 segundos (issue #36)
+  // Refresco automático cada 5 segundos (issue #36).
+  // La primera carga va en un setTimeout para no hacer setState síncrono
+  // dentro del effect (regla react-hooks/set-state-in-effect).
   useEffect(() => {
-    refrescar()
+    const primeraCarga = setTimeout(refrescar, 0)
     const intervalo = setInterval(refrescar, 5000)
-    return () => clearInterval(intervalo)
+    return () => {
+      clearTimeout(primeraCarga)
+      clearInterval(intervalo)
+    }
   }, [refrescar])
 
   // Refresco instantáneo entre pestañas
@@ -149,16 +220,20 @@ function CocinaPage() {
   }, [refrescar])
 
   // Guarda el estado y repinta
-  const cambiarEstado = async (numero, nuevoEstado) => {
+  // datosExtra: solo lo usa "En camino", con los minutos de llegada (#60)
+  const cambiarEstado = async (numero, nuevoEstado, datosExtra) => {
     const venta = ventas.find((v) => v.numero === numero)
 
     // Pedido del backend → PATCH /api/orders/:id/estado
     if (venta?.idApi) {
       try {
-        await cambiarEstadoPedido(
-          venta.idApi,
-          estadosVistaAApi[nuevoEstado] ?? "En preparación"
-        )
+        // "Listo" es "En camino" a domicilio y "Listo para recoger" en local
+        const estadoApi = estadoApiDe(nuevoEstado, venta.modoPedido)
+        if (datosExtra && Object.keys(datosExtra).length > 0) {
+          await cambiarEstadoPedido(venta.idApi, estadoApi, datosExtra)
+        } else {
+          await cambiarEstadoPedido(venta.idApi, estadoApi)
+        }
         await refrescar()
       } catch (error) {
         mostrarAviso({

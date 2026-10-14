@@ -1,3 +1,10 @@
+/**
+ * HOOK useProductos
+ *
+ * Maneja la lista de productos del menú: los carga desde el backend al
+ * abrir, y deja guardar, actualizar y borrar (recargando la lista sola).
+ * Los errores muestran un aviso con useAviso.
+ */
 import { useState, useEffect } from "react"
 import * as api from "../lib/api"
 import { useAviso } from "./useAviso"

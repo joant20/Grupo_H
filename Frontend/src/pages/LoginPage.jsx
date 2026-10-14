@@ -1,3 +1,10 @@
+/**
+ * PÁGINA DE INICIO DE SESIÓN (/login)
+ *
+ * El usuario escribe email y contraseña, se validan con zod y se mandan a
+ * POST /api/users/login. Si el backend responde bien, onLogin() guarda la
+ * sesión (usuario + token) en App.jsx y nos lleva al inicio.
+ */
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
@@ -38,7 +45,7 @@ function LoginPage({ onLogin, usuario, onLogout }) {
     <div className="min-h-screen bg-[#fef9f0] flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-white rounded-2xl p-8 shadow-xl">
         <h1 className="text-2xl font-bold text-gray-800 text-center mb-2">
-          Iniciar Sesión
+          🔑 Iniciar Sesión
         </h1>
         <p className="text-gray-500 text-center mb-6">
           Bienvenido de vuelta, ordena tu comida favorita

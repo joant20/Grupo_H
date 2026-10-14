@@ -1,3 +1,12 @@
+/**
+ * PÁGINA DE VENTAS (/admin/ventas, solo admin)
+ *
+ * Panel de reportes: total vendido, tickets, ticket promedio, top de
+ * productos, ventas por método de pago e historial de tickets.
+ * Los pedidos salen de GET /api/orders (backend) mezclados con los pedidos
+ * de invitados guardados en este navegador (localStorage, ver lib/historialVentas).
+ * Se puede filtrar por: hoy, 7 días, 30 días o todo.
+ */
 import { useState, useEffect } from "react"
 import {
   obtenerVentas,
@@ -6,6 +15,7 @@ import {
   calcularResumen,
 } from "../../lib/historialVentas"
 
+// Botones de filtro por periodo
 const periodos = [
   { id: "hoy", texto: "Hoy" },
   { id: "7", texto: "7 días" },

@@ -1,3 +1,11 @@
+/**
+ * PÁGINA "SERVIDOR CAÍDO" (/servidor-caido)
+ *
+ * Aparece cuando el backend no responde o responde con error 500
+ * (la redirección la dispara el interceptor de lib/api.js).
+ * El botón "Reintentar" prueba de verdad contra GET /api/products:
+ * si el backend ya contesta, te lleva al inicio; si no, avisa que sigue caído.
+ */
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { obtenerProductos } from "../lib/api"

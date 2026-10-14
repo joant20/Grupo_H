@@ -1,3 +1,11 @@
+/**
+ * ADMINISTRACIÓN DE USUARIOS (/admin/usuarios, solo admin)
+ *
+ * De alta de personal de cocina: nombre, email y contraseña.
+ * Manda POST /api/users/cocina, que crea la cuenta con rol "cocina" (el
+ * registro normal siempre hace clientes). Con esa cuenta el cocinero entra
+ * a /cocina y ya no puede tocar ventas ni productos.
+ */
 import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -6,6 +14,7 @@ import Input from "../../components/ui/input"
 import { useAviso } from "../../hooks/useAviso"
 import { crearUsuarioCocina } from "../../lib/api"
 
+// Lo mínimo que se le pide para crear la cuenta
 const schema = z.object({
   nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
   email: z.string().email("Ingresa un email válido"),
@@ -44,7 +53,7 @@ function AdminUsuarios() {
   return (
     <div className="min-h-screen bg-[#fef9f0]">
       <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Gestión de Usuarios</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">👥 Gestión de Usuarios</h1>
 
         <div className="bg-white rounded-2xl p-6 shadow-xl max-w-lg">
           <h2 className="text-xl font-bold text-gray-800 mb-4">Nuevo usuario de cocina</h2>

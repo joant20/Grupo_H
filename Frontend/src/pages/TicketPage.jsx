@@ -1,3 +1,12 @@
+/**
+ * PÁGINA DEL TICKET (/ticket)
+ *
+ * Ticket digital del pedido con aspecto de papel de verdad, con código de
+ * barras (JsBarcode) hecho de los dígitos del número de pedido.
+ * Se puede imprimir (window.print) o descargar como PDF (lib/ticketPdf.js).
+ * El pedido llega por navigate(...); si recargas con F5, sale de
+ * sessionStorage (clave "pedido_confirmado").
+ */
 import { useEffect, useRef } from "react"
 import { Link, useLocation } from "react-router-dom"
 import Navbar from "../components/Navbar"

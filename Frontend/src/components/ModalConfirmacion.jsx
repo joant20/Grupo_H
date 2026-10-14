@@ -1,3 +1,11 @@
+/**
+ * MODAL DE CONFIRMACIÓN
+ *
+ * Pide confirmar una acción antes de ejecutarla (por ejemplo confirmar el
+ * pedido). Si se le pasan productos, muestra también el resumen del carrito
+ * con su total; si no, solo muestra el mensaje.
+ * Clic en el fondo o en "Cancelar" cierra sin hacer nada.
+ */
 function ModalConfirmacion({
   titulo,
   mensaje,

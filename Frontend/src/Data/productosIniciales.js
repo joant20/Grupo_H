@@ -1,3 +1,10 @@
+/**
+ * PRODUCTOS DE EJEMPLO (datos iniciales)
+ *
+ * Lista de comidas del menú que se usa como respaldo cuando aún no hay
+ * conexión con el backend, y como referencia del formato de un producto
+ * (nombre, precio, categoría, imagen, disponibilidad, etc.).
+ */
 export const productosIniciales = [
   {
     id: 1,

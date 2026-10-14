@@ -1,3 +1,11 @@
+/**
+ * PÁGINA DEL MENÚ (/menu)
+ *
+ * Lista de platillos agrupados por sección (Pizzas, Bebidas, Postres...).
+ * Tiene barra de búsqueda, botones de filtro por categoría y el modal de
+ * detalle del platillo (ProductoDetalle) al hacer clic en una tarjeta.
+ * El filtro también puede venir puesto desde la URL: /menu?categoria=Pizzas
+ */
 import { useState } from "react"
 import { useSearchParams } from "react-router-dom"
 import useProductos from "../hooks/useProductos"
@@ -50,9 +58,11 @@ function MenuPage({ usuario, onLogout }) {
     <div className="min-h-screen bg-[#fef9f0]">
       <Navbar usuario={usuario} onLogout={onLogout} />
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <h1 className="text-3xl font-extrabold bg-gradient-to-r from-orange-600 to-amber-500 bg-clip-text text-transparent">
-          Nuestro Menú
+      {/* overflow-x-clip: evita el scroll lateral por contenido ancho (sin
+          romper el sticky del Navbar, como haría overflow-x-hidden) */}
+      <div className="max-w-6xl mx-auto px-4 py-8 overflow-x-clip">
+        <h1 className="text-3xl font-extrabold text-gray-800">
+          <span aria-hidden="true">🍕</span> Nuestro Menú
         </h1>
         <p className="text-gray-500 text-sm mt-1 mb-6">
           Elige tu favorito y agrégalo al carrito 🍕
@@ -69,8 +79,9 @@ function MenuPage({ usuario, onLogout }) {
           />
         </div>
 
-        {/* Filtros de categoría */}
-        <div className="flex flex-wrap gap-2 mb-8">
+        {/* Filtros de categoría → en móvil se deslizan en horizontal,
+            en escritorio envuelven en varias filas */}
+        <div className="flex flex-nowrap md:flex-wrap gap-2 mb-8 overflow-x-auto md:overflow-visible pb-1 -mx-4 px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <button
             onClick={() => setCategoriaSeleccionada("Todos")}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer ${

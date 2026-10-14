@@ -1,3 +1,10 @@
+/**
+ * RUTA PROTEGIDA (guardia de administración)
+ *
+ * Envuelve rutas privadas: si el usuario no ha iniciado sesión lo manda al
+ * login, y si su rol no está permitido le muestra la pantalla "Acceso Denegado".
+ * Por defecto solo entra el rol "admin" (la cocina y ventas usan sus propios roles).
+ */
 import { Navigate } from "react-router-dom"
 
 function AdminRoute({ usuario, roles = ["admin"], children }) {

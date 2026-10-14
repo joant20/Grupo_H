@@ -1,3 +1,16 @@
+/**
+ * CHECKOUT - Grupo H (Sprint 4)
+ *
+ * Qué se agregó en este sprint:
+ *  - Si el cliente ya inició sesión, NO vuelve a pedirle nombre, dirección
+ *    ni teléfono: se auto-completan desde su perfil (#69/#70).
+ *  - Se envían al backend: numero, modoPedido, telefono, notas, ultimos4
+ *    (solo los últimos 4 dígitos de la tarjeta; la tarjeta COMPLETA no se
+ *    guarda jamás).
+ *  - Al confirmar el pedido se actualiza el perfil (teléfono y dirección)
+ *    con actualizarMiPerfil() y se lanza el evento "perfil:actualizado"
+ *    para que el Navbar y otras pantallas se actualicen al instante.
+ */
 import { Link, useNavigate } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import { useCarrito } from "../hooks/useCarrito"
@@ -9,7 +22,9 @@ import { standardSchemaResolver } from "@hookform/resolvers/standard-schema"
 import Input from "../components/ui/input"
 import TextArea from "../components/ui/TextArea"
 import { guardarVenta } from "../lib/historialVentas"
-import { crearPedido } from "../lib/api"
+import { crearPedido, crearPedidoInvitado, actualizarMiPerfil } from "../lib/api"
+import { guardarPedidoInvitado } from "../lib/pedidoInvitado"
+import { pedirPermiso, activarPushPedido } from "../lib/notificaciones"
 import { useAviso } from "../hooks/useAviso"
 
 const detectarModoInicial = () => {
@@ -126,11 +141,19 @@ const formatearCVV = (e) => {
 function CheckoutPage({ usuario, onLogout }) {
   const [modalAbierto, setModalAbierto] = useState(false)
   const [datosEnvio, setDatosEnvio] = useState(null)
+  // Si el perfil ya trae datos válidos no se vuelve a pedir nada (#HU07/entrega)
+  const [editandoDireccion, setEditandoDireccion] = useState(false)
+  const [editandoTelefono, setEditandoTelefono] = useState(false)
   const { carrito, totalCarrito, cantidadItems, vaciarCarrito } = useCarrito()
   const { mostrarAviso } = useAviso()
   const navigate = useNavigate()
 
  const schema = crearSchema(!usuario)
+
+  const direccionGuardada = usuario?.direccion?.trim() ?? ""
+  const telefonoGuardado = usuario?.telefono?.trim() ?? ""
+  const direccionValida = direccionGuardada.length >= 10
+  const telefonoValido = /^\d{10}$/.test(telefonoGuardado)
 
   const {
     register,
@@ -142,8 +165,8 @@ function CheckoutPage({ usuario, onLogout }) {
     defaultValues: {
       modoPedido: detectarModoInicial(), 
       nombre: usuario?.nombre ?? "",
-      direccion: "",
-      telefono: "",
+      direccion: direccionGuardada,
+      telefono: telefonoGuardado,
       notas: "",
       metodoPago: "",
       numeroTarjeta: "",
@@ -154,6 +177,12 @@ function CheckoutPage({ usuario, onLogout }) {
 
   const metodoPagoSeleccionado = watch("metodoPago")
    const modoPedidoSeleccionado = watch("modoPedido")
+
+  // Un dato del perfil solo se vuelve a pedir si no existe o no es válido
+  const mostrarDireccion =
+    modoPedidoSeleccionado === "domicilio" && (!direccionValida || editandoDireccion)
+  const mostrarTelefono =
+    modoPedidoSeleccionado !== "aqui" && (!telefonoValido || editandoTelefono)
 
   // El mayor tiempoPreparación del carrito (la cocina hace todo en paralelo)
   const tiempoPreparacion = carrito.reduce(
@@ -206,38 +235,93 @@ function CheckoutPage({ usuario, onLogout }) {
     }
 
     if (usuario) {
-      // Logueado: el pedido vive en el backend (GET /orders lo verá la cocina)
-      try {
-        await crearPedido({
-          nombreCompleto: datosEnvio.nombre || usuario?.nombre || "Cliente",
-          items: carrito.map((i) => ({ productId: i._id, cantidad: i.cantidad })),
-          direccionEntrega:
-            datosEnvio.direccion ||
-            (datosEnvio.modoPedido === "aqui"
-              ? "Comer en el restaurante"
-              : "Recoger en el local"),
-          // El backend solo acepta minúsculas (issue #69)
-          metodoPago: datosEnvio.metodoPago.toLowerCase(),
-          // Estos campos se enviarán cuando el modelo los soporte (issue #70)
-          numero: pedido.numero,
-          modoPedido: datosEnvio.modoPedido,
-          telefono: datosEnvio.telefono || "",
-          notas: datosEnvio.notas || "",
-          ultimos4: pedido.ultimos4,
-        })
-      } catch (error) {
-        mostrarAviso({
-          titulo: "No se pudo confirmar el pedido",
-          mensaje:
-            error.response?.data?.mensaje ||
-            "Intenta de nuevo en unos segundos.",
-          tipo: "error",
-        })
-        return // no vaciamos el carrito ni navegamos
+      // Guarda los datos de entrega en el perfil para no pedirlos en el próximo pedido
+      const cambios = {}
+      const telefonoNuevo = (datosEnvio.telefono ?? "").trim()
+      const direccionNueva = (datosEnvio.direccion ?? "").trim()
+      if (telefonoNuevo && telefonoNuevo !== (usuario.telefono ?? "")) {
+        cambios.telefono = telefonoNuevo
       }
-    } else {
-      // Invitado: solo en este navegador (el backend exige iniciar sesión)
-      guardarVenta(pedido)
+      if (direccionNueva && direccionNueva !== (usuario.direccion ?? "")) {
+        cambios.direccion = direccionNueva
+      }
+      if (Object.keys(cambios).length > 0) {
+        try {
+          const { data } = await actualizarMiPerfil(cambios)
+          localStorage.setItem("usuario", JSON.stringify(data.usuario))
+          window.dispatchEvent(
+            new CustomEvent("perfil:actualizado", { detail: data.usuario })
+          )
+        } catch {
+          // Si falla el perfil no se bloquea el pedido: ya quedará para la próxima
+        }
+      }
+    }
+
+    // Payload común: lo mismo se manda logueado que como invitado
+    const payload = {
+      nombreCompleto:
+        datosEnvio.nombre || usuario?.nombre || "Cliente",
+      items: carrito.map((i) => ({ productId: i._id, cantidad: i.cantidad })),
+      direccionEntrega:
+        datosEnvio.direccion ||
+        (datosEnvio.modoPedido === "aqui"
+          ? "Comer en el restaurante"
+          : "Recoger en el local"),
+      // El backend solo acepta minúsculas (issue #69)
+      metodoPago: datosEnvio.metodoPago.toLowerCase(),
+      // Estos campos ya se persisten en la Orden (issue #70 resuelto)
+      numero: pedido.numero,
+      modoPedido: datosEnvio.modoPedido,
+      telefono: datosEnvio.telefono || "",
+      notas: datosEnvio.notas || "",
+      ultimos4: pedido.ultimos4,
+    }
+
+    // Id del pedido en el backend y clave secreta (solo invitado): con
+    // ellos activamos los push del navegador DESPUÉS de pagar.
+    // clavePedido solo se llena si el pedido es de invitado.
+    let clavePedido = null
+    let idPedidoBackend
+
+    try {
+      if (usuario) {
+        // Logueado: el pedido vive en el backend (GET /orders lo verá la cocina)
+        // Guardamos su id real para poder suscribir los push a ESTE pedido.
+        const respuesta = await crearPedido(payload)
+        idPedidoBackend = respuesta?.data?._id ?? null
+      } else {
+        // Invitado (#76): entra igual a la cocina, pero sin usuario. El
+        // backend devuelve una clave secreta con la que este navegador puede
+        // ver SU pedido en /mis-pedidos (y nadie más).
+        const respuesta = await crearPedidoInvitado(payload)
+        guardarPedidoInvitado(respuesta?.data ?? {})
+        guardarVenta(pedido) // respaldo local que usa la página de Ventas
+        idPedidoBackend = respuesta?.data?._id ?? null
+        clavePedido = respuesta?.data?.claveInvitado ?? null
+      }
+    } catch (error) {
+      mostrarAviso({
+        titulo: "No se pudo confirmar el pedido",
+        mensaje:
+          error.response?.data?.mensaje ||
+          "Intenta de nuevo en unos segundos.",
+        tipo: "error",
+      })
+      return // no vaciamos el carrito ni navegamos
+    }
+
+    // HU07: pide permiso para avisar por notificación del navegador cuando
+    // el pedido cambie de estado (reemplaza al WhatsApp). Si el usuario no
+    // autoriza, pasa: el seguimiento en pantalla sigue funcionando.
+    await pedirPermiso()
+
+    // Requisito del maestro: como YA PAGÓ, activamos los push REALES del
+    // backend para este pedido. Si la cocina cambia el estado, el servidor
+    // le avisa aunque tenga la pestaña cerrada. Si falla (sin permiso,
+    // navegador sin service worker), no pasa nada: el toast es el respaldo.
+    if (idPedidoBackend) {
+      activarPushPedido(idPedidoBackend, clavePedido)
     }
 
     sessionStorage.setItem("pedido_confirmado", JSON.stringify(pedido))
@@ -249,7 +333,7 @@ function CheckoutPage({ usuario, onLogout }) {
       <Navbar usuario={usuario} onLogout={onLogout} />
       <div className="max-w-3xl mx-auto px-4 py-8">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">
-          Confirmar pedido
+          ✅ Confirmar pedido
         </h1>
 
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -311,7 +395,7 @@ function CheckoutPage({ usuario, onLogout }) {
               />
             )}
 
-            {modoPedidoSeleccionado === "domicilio" && (
+            {mostrarDireccion ? (
               <Input
                 label="Dirección"
                 id="direccion"
@@ -319,9 +403,25 @@ function CheckoutPage({ usuario, onLogout }) {
                 register={register("direccion")}
                 error={errors.direccion}
               />
+            ) : (
+              modoPedidoSeleccionado === "domicilio" && (
+                <div className="flex items-center justify-between gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-4">
+                  <p className="text-sm text-gray-700">
+                    <span className="block text-xs text-gray-500">Dirección</span>
+                    {direccionGuardada}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setEditandoDireccion(true)}
+                    className="text-sm text-orange-600 hover:underline shrink-0 cursor-pointer"
+                  >
+                    Cambiar
+                  </button>
+                </div>
+              )
             )}
 
-            {modoPedidoSeleccionado !== "aqui" && (
+            {mostrarTelefono ? (
               <Input
                 label="Teléfono"
                 id="telefono"
@@ -330,6 +430,22 @@ function CheckoutPage({ usuario, onLogout }) {
                 register={register("telefono")}
                 error={errors.telefono}
               />
+            ) : (
+              modoPedidoSeleccionado !== "aqui" && (
+                <div className="flex items-center justify-between gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 mb-4">
+                  <p className="text-sm text-gray-700">
+                    <span className="block text-xs text-gray-500">Teléfono</span>
+                    {telefonoGuardado}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setEditandoTelefono(true)}
+                    className="text-sm text-orange-600 hover:underline shrink-0 cursor-pointer"
+                  >
+                    Cambiar
+                  </button>
+                </div>
+              )
             )}
 
             {modoPedidoSeleccionado === "domicilio" && (
@@ -437,7 +553,8 @@ function CheckoutPage({ usuario, onLogout }) {
                 </div>
 
                 <p className="text-xs text-gray-400">
-                  🔒 No guardamos tu tarjeta: se cobra al recibir el pedido.
+                  🔒 Solo guardamos los últimos 4 dígitos para el ticket; la
+                  tarjeta completa nunca se almacena.
                 </p>
               </div>
             )}

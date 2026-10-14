@@ -1,8 +1,15 @@
+/**
+ * TARJETA DE PRODUCTO
+ *
+ * Muestra una comida del menú en la cuadrícula: foto, nombre, precio,
+ * categoría, badge de "destacado" y si está agotado.
+ * Al hacer clic la selecciona (abre el detalle) y el botón la manda al carrito.
+ */
 function ProductoCard({ producto, onAgregar, onSeleccionar }) {
   return (
     <div
       onClick={() => onSeleccionar && onSeleccionar(producto)}
-      className="group bg-white rounded-2xl shadow-md shadow-gray-200/60 ring-1 ring-orange-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-300/60 hover:-translate-y-2 hover:ring-orange-200 focus-visible:-translate-y-2 focus-visible:shadow-2xl focus-visible:outline-2 focus-visible:outline-orange-500 transition-all duration-300 cursor-pointer"
+      className="group min-w-0 bg-white rounded-2xl shadow-md shadow-gray-200/60 ring-1 ring-orange-100 overflow-hidden hover:shadow-2xl hover:shadow-orange-300/60 hover:-translate-y-2 hover:ring-orange-200 focus-visible:-translate-y-2 focus-visible:shadow-2xl focus-visible:outline-2 focus-visible:outline-orange-500 transition-all duration-300 cursor-pointer"
     >
       <div className="relative overflow-hidden">
         <img
@@ -42,10 +49,10 @@ function ProductoCard({ producto, onAgregar, onSeleccionar }) {
           ${producto.precio.toFixed(2)}
         </span>
 
-        <h3 className="font-bold text-gray-800 mb-1 transition-colors group-hover:text-orange-600">
+        <h3 className="font-bold text-gray-800 mb-1 break-words transition-colors group-hover:text-orange-600">
           {producto.nombre}
         </h3>
-        <p className="text-gray-500 text-sm mb-3 line-clamp-2">{producto.descripcion}</p>
+        <p className="text-gray-500 text-sm mb-3 line-clamp-2 break-words">{producto.descripcion}</p>
 
         <div className="flex gap-2 mb-4">
           <span className="inline-flex items-center gap-1 bg-gray-50 border border-gray-100 text-gray-500 text-xs font-medium px-2.5 py-1 rounded-full">

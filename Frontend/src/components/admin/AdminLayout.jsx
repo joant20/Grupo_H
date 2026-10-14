@@ -37,6 +37,8 @@ const claseVentasMovil = ({ isActive }) =>
 function AdminLayout({ usuario, children }) {
   const [abierto, setAbierto] = useState(false)
   const cerrar = () => setAbierto(false)
+  // El rol cocina solo atiende comandas: su panel no se llama "Panel Admin"
+  const tituloPanel = usuario?.rol === "cocina" ? "Panel Cocina" : "Panel Admin"
 
   return (
     <div className="min-h-screen bg-[#fef9f0]">
@@ -51,7 +53,7 @@ function AdminLayout({ usuario, children }) {
             <span className="text-2xl">🍕</span>
             <h1 className="text-xl font-bold text-white">FoodApp</h1>
             <span className="text-xs bg-white text-orange-600 px-2 py-1 rounded-full font-bold">
-              Panel Admin
+              {tituloPanel}
             </span>
           </div>
 

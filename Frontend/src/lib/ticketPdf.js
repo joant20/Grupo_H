@@ -1,3 +1,11 @@
+/**
+ * GENERADOR DE TICKET EN PDF
+ *
+ * Crea el ticket de cocina en formato papel térmico (80 mm) con jsPDF:
+ * encabezado del restaurante, datos del pedido, productos, total y un
+ * código de barras (CODE128) con el número de ticket.
+ * El mismo diseño se usa para la vista previa en pantalla.
+ */
 import { jsPDF } from "jspdf"
 import JsBarcode from "jsbarcode"
 

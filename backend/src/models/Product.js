@@ -1,3 +1,9 @@
+/**
+ * MODELO DE PRODUCTO (platillos del menú)
+ *
+ * Cada documento de esta colección es un platillo que se muestra en el menú
+ * y que el administrador puede crear/editar desde /admin/productos.
+ */
 const mongoose= require('mongoose')
 
 const productSchema = new mongoose.Schema({
@@ -17,14 +23,17 @@ const productSchema = new mongoose.Schema({
         required:true,
         min:0
     },
+    // Ruta o URL de la foto (se sube a Cloudinary al crear el producto)
     imagen: {
         type:String,
         default: ''
     },
+    // Sección del menú: Pizzas, Bebidas, Postres... (sirve para los filtros)
     categoria: {
     type: String,
     default: ""
     },
+    // Cuántos minutos tarda la cocina (lo muestra el menú y el checkout)
     tiempoPreparacion: {
         type: Number,
         default: 0
@@ -33,10 +42,12 @@ const productSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    // Los destacados aparecen en "Lo más pedido" de la página principal
     destacado: {
         type: Boolean,
         default: false
     },
+    // false = agotado: el cliente ya no puede agregarlo al carrito
     disponible:{
         type:Boolean,
         default:true 

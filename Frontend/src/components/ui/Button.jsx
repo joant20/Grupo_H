@@ -1,3 +1,7 @@
+// Button: botón naranja de los formularios.
+// type="submit" por defecto → al clickear envía el <form> y ejecuta
+// handleSubmit(onSubmit) de react-hook-form.
+// disabled=true lo pone gris y no responde (para cuando falta completar algo).
 function Button({ children, type = "submit", disabled = false }) {
   return (
     <button

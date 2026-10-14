@@ -11,16 +11,19 @@
  *   6. el refresco automático (seguimiento en vivo) está cada 15 s.
  */
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest"
-import { cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom"
 import { AvisoProvider } from "../context/AvisoProvider"
 import { CarritoProvider } from "../context/CarritoProvider"
 import MisPedidosPage from "../pages/MisPedidosPage"
-import { obtenerPedidos } from "../lib/api"
+import { obtenerPedidos, obtenerPedidoInvitado, confirmarRecepcion } from "../lib/api"
+import { guardarPedidoInvitado, leerPedidoInvitado } from "../lib/pedidoInvitado"
 
 // Doble falso del API: nada hace red de verdad
 vi.mock("../lib/api", () => ({
   obtenerPedidos: vi.fn(),
+  obtenerPedidoInvitado: vi.fn(),
+  confirmarRecepcion: vi.fn(),
   crearPedido: vi.fn(),
   cambiarEstadoPedido: vi.fn(),
   obtenerProductos: vi.fn(() => Promise.resolve({ data: [] })),
@@ -101,6 +104,98 @@ describe("MisPedidosPage - HU06 seguimiento", () => {
       "/login"
     )
     expect(obtenerPedidos).not.toHaveBeenCalled()
+  })
+
+  it("invitado: muestra SOLO el pedido de este navegador (#76)", async () => {
+    // El checkout guardó id + clave al confirmar el pedido sin cuenta
+    guardarPedidoInvitado({ _id: "abc123", claveInvitado: "secreta" })
+    obtenerPedidoInvitado.mockResolvedValue({ data: pedidoApi })
+
+    pintar(null)
+
+    expect(await screen.findByText(/Pedido #/)).toBeInTheDocument()
+    expect(screen.getByRole("heading", { name: "Mi pedido" })).toBeInTheDocument()
+    // No pide el historial (eso es solo con sesión)
+    expect(obtenerPedidos).not.toHaveBeenCalled()
+    expect(obtenerPedidoInvitado).toHaveBeenCalledWith("abc123", "secreta")
+  })
+
+  it("invitado: si el backend ya borró el pedido (pasaron los 10 min) limpia el aviso", async () => {
+    guardarPedidoInvitado({ _id: "abc123", claveInvitado: "secreta" })
+    obtenerPedidoInvitado.mockRejectedValue({ response: { status: 404 } })
+
+    pintar(null)
+
+    expect(
+      await screen.findByRole("heading", {
+        name: /Tu pedido ya fue entregado y archivado/,
+      })
+    ).toBeInTheDocument()
+    // El guardado local ya no sirve para nada: se borró
+    expect(leerPedidoInvitado()).toBeNull()
+  })
+
+  it("muestra el botón 'Ya recibí mi pedido' solo cuando ya salió de la cocina", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...pedidoApi, estado: "En preparación" }], // aún en la cocina
+    })
+    pintar()
+    await screen.findByText(/Pedido #/)
+    expect(screen.queryByRole("button", { name: /Ya recibí mi pedido/ })).toBeNull()
+
+    cleanup() // se "borra" la primera pantalla antes de pintar la segunda
+
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...pedidoApi, estado: "En camino" }], // ya salió: sí aparece
+    })
+    pintar()
+    await screen.findByText(/Pedido #/)
+    expect(screen.getByRole("button", { name: /Ya recibí mi pedido/ })).toBeInTheDocument()
+  })
+
+  it("al confirmar la recepción llama al backend y el pedido pasa a Entregado", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...pedidoApi, estado: "Listo para recoger" }],
+    })
+    confirmarRecepcion.mockResolvedValue({
+      data: { ...pedidoApi, estado: "Entregado" },
+    })
+
+    pintar()
+    fireEvent.click(await screen.findByRole("button", { name: /Ya recibí mi pedido/ }))
+
+    // El logueado solo manda su token: NUNCA la clave de un invitado
+    await waitFor(() =>
+      expect(confirmarRecepcion).toHaveBeenCalledWith(pedidoApi._id, {})
+    )
+    // La tarjeta se actualiza al instante: aparece "Entregado"
+    expect(
+      await screen.findAllByText((texto) => texto.includes("Entregado"))
+    ).not.toHaveLength(0)
+  })
+
+  it("el INVITADO manda su clave secreta al confirmar la recepción", async () => {
+    guardarPedidoInvitado({ _id: "abc123", claveInvitado: "secreta-77" })
+    // El backend devuelve el MISMO pedido que se guardó (mismo _id)
+    obtenerPedidoInvitado.mockResolvedValue({
+      data: { ...pedidoApi, _id: "abc123", estado: "En camino" },
+    })
+    confirmarRecepcion.mockResolvedValue({
+      data: { ...pedidoApi, _id: "abc123", estado: "Entregado" },
+    })
+
+    pintar(null)
+    fireEvent.click(await screen.findByRole("button", { name: /Ya recibí mi pedido/ }))
+
+    await waitFor(() =>
+      expect(confirmarRecepcion).toHaveBeenCalledWith("abc123", {
+        clave: "secreta-77",
+      })
+    )
+    // El pedido del invitado también pasa a "Entregado"
+    expect(
+      await screen.findAllByText((texto) => texto.includes("Entregado"))
+    ).not.toHaveLength(0)
   })
 
   it("pinta el pedido con su número, estado, productos y total", async () => {
@@ -189,6 +284,23 @@ describe("MisPedidosPage - HU06 seguimiento", () => {
 
     await vi.waitFor(() => expect(obtenerPedidos).toHaveBeenCalledTimes(2))
   })
+
+  it("el botón Actualizar también funciona para el INVITADO", async () => {
+    guardarPedidoInvitado({ _id: "abc123", claveInvitado: "secreta" })
+    obtenerPedidoInvitado.mockResolvedValue({ data: pedidoApi })
+
+    pintar(null)
+    await screen.findByText(/Pedido #/)
+    expect(obtenerPedidoInvitado).toHaveBeenCalledTimes(1)
+
+    fireEvent.click(screen.getByRole("button", { name: /Actualizar/ }))
+
+    await vi.waitFor(() =>
+      expect(obtenerPedidoInvitado).toHaveBeenCalledTimes(2)
+    )
+    // El invitado NUNCA pide el historial: solo su pedido de este navegador
+    expect(obtenerPedidos).not.toHaveBeenCalled()
+  })
 })
 
 describe("MisPedidosPage - aviso de entrega y ticket", () => {
@@ -231,5 +343,133 @@ describe("MisPedidosPage - aviso de entrega y ticket", () => {
 
     // El número del pedido viaja en el state de la ruta
     expect(await screen.findByText(/Ticket #/)).toBeInTheDocument()
+  })
+})
+
+describe("MisPedidosPage - HU07 avisos de estado", () => {
+  it("cuando está listo avisa que ya puede pasar a recogerlo con su ticket", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [
+        {
+          ...pedidoApi,
+          modoPedido: "llevar",
+          direccionEntrega: "Recoger en el local",
+          estado: "Listo para recoger",
+        },
+      ],
+    })
+
+    pintar()
+
+    // El aviso de entrega cambia a "ven a buscarlo"
+    expect(await screen.findByText(/Tu pedido está listo/)).toBeInTheDocument()
+    expect(screen.getByText(/presénta tu ticket digital/)).toBeInTheDocument()
+    expect(screen.getByRole("button", { name: "Ver ticket" })).toBeInTheDocument()
+    // La barra de progreso usa los pasos de recogida (paso 3 = Listo para recoger)
+    expect(screen.getAllByText("Listo para recoger").length).toBeGreaterThan(0)
+  })
+
+  it("muestra un aviso cuando el estado del pedido cambia", async () => {
+    obtenerPedidos
+      .mockResolvedValueOnce({ data: [{ ...pedidoApi, estado: "Recibido" }] })
+      .mockResolvedValue({ data: [{ ...pedidoApi, estado: "En preparación" }] })
+
+    pintar()
+    await screen.findByText(/Pedido #/)
+
+    fireEvent.click(screen.getByRole("button", { name: /Actualizar/ }))
+
+    expect(await screen.findByText(/ya está en proceso/)).toBeInTheDocument()
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument()
+  })
+
+  it("NO avisa en el primer render (solo cuando algo cambia)", async () => {
+    pintar()
+
+    await screen.findByText(/Pedido #/)
+
+    expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument()
+  })
+})
+
+describe("MisPedidosPage - pedido en camino (#59 / #60)", () => {
+  it("muestra en cuántos minutos llega el repartidor", async () => {
+    // Salió hace 5 minutos y la cocina estimó 25 → quedan 20
+    obtenerPedidos.mockResolvedValue({
+      data: [
+        {
+          ...pedidoApi,
+          estado: "En camino",
+          enCaminoDesde: new Date(Date.now() - 5 * 60000).toISOString(),
+          estimacionMinutos: 25,
+        },
+      ],
+    })
+
+    pintar()
+
+    expect(await screen.findByText(/Tu pedido va en camino/)).toBeInTheDocument()
+    expect(screen.getByText(/Llega en ~20 min/)).toBeInTheDocument()
+    expect(screen.getByText(/salió a las/)).toBeInTheDocument()
+  })
+
+  it("si el tiempo estimado ya pasó avisa que ya casi llega", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [
+        {
+          ...pedidoApi,
+          estado: "En camino",
+          enCaminoDesde: new Date(Date.now() - 40 * 60000).toISOString(), // salió hace 40
+          estimacionMinutos: 25,
+        },
+      ],
+    })
+
+    pintar()
+
+    expect(await screen.findByText(/Ya casi llega/)).toBeInTheDocument()
+  })
+
+  it("un pedido en camino viejo (sin hora de salida) no rompe nada", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [{ ...pedidoApi, estado: "En camino" }],
+    })
+
+    pintar()
+
+    expect(
+      await screen.findByText(/El repartidor ya salió hacia tu domicilio/)
+    ).toBeInTheDocument()
+  })
+})
+
+describe("MisPedidosPage - historial del proceso", () => {
+  it("muestra cada paso del proceso con su hora", async () => {
+    obtenerPedidos.mockResolvedValue({
+      data: [
+        {
+          ...pedidoApi,
+          estado: "En preparación",
+          historialEstados: [
+            { estado: "Recibido", fecha: "2026-10-06T19:30:00.000Z" },
+            { estado: "En preparación", fecha: "2026-10-06T19:35:00.000Z" },
+          ],
+        },
+      ],
+    })
+
+    pintar()
+
+    expect(await screen.findByText(/Así va tu pedido/)).toBeInTheDocument()
+    expect(screen.getAllByText("En preparación").length).toBeGreaterThan(0)
+    expect(screen.getAllByText("Recibido").length).toBeGreaterThan(0)
+  })
+
+  it("los pedidos antiguos (sin historial) no muestran la línea de tiempo", async () => {
+    pintar()
+
+    await screen.findByText(/Pedido #/)
+
+    expect(screen.queryByText(/Así va tu pedido/)).not.toBeInTheDocument()
   })
 })

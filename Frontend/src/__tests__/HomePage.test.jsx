@@ -57,7 +57,7 @@ describe("HomePage - bienvenida y categorías", () => {
   it("muestra la bienvenida con el nombre del restaurante", async () => {
     pintar({ nombre: "Ana López" })
 
-    expect(screen.getByText("¡Hola de nuevo, Ana López!")).toBeInTheDocument()
+    expect(screen.getByText("¡Bienvenido/a, Ana López!")).toBeInTheDocument()
     // el hero (p span) dice FoodApp; el Navbar también, por eso el selector
     expect(
       await screen.findByText("FoodApp", { selector: "p span" })

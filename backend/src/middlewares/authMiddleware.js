@@ -1,3 +1,11 @@
+/**
+ * MIDDLEWARE: verificarToken
+ *
+ * Protege las rutas que solo pueden usar usuarios con sesión iniciada.
+ * Lee el token JWT que viene en el header "Authorization: Bearer xxx",
+ * lo valida con el secreto del .env y deja el usuario en req.usuario
+ * para que los siguientes middlewares/controladores lo usen.
+ */
 const jwt = require('jsonwebtoken');
 
 const verificarToken = (req, res, next) => {

@@ -1,3 +1,12 @@
+/**
+ * PÁGINA DEL CARRITO (/carrito)
+ *
+ * Muestra los productos elegidos con su cantidad y su precio.
+ * Permite: subir/bajar cantidades, quitar un producto, vaciar todo el
+ * carrito (con confirmación) y seguir al checkout.
+ * El estado del carrito vive en CarritoContext (se guarda en localStorage,
+ * así que no se borra al recargar).
+ */
 import { Link } from "react-router-dom"
 import Navbar from "../components/Navbar"
 import { useCarrito } from "../hooks/useCarrito"
@@ -31,7 +40,7 @@ function CarritoPage({ usuario, onLogout }) {
     <div className="min-h-screen bg-[#fef9f0]">
       <Navbar usuario={usuario} onLogout={onLogout} />
       <div className="max-w-3xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Tu carrito</h1>
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">🛒 Tu carrito</h1>
 
         <div className="space-y-4 mb-6">
           {carrito.map((item) => (

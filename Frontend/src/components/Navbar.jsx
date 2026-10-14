@@ -69,12 +69,14 @@ function Navbar({ usuario, onLogout }) {
         {/* Centro: cápsula glass con los enlaces (escritorio) */}
         <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 bg-white/10 ring-1 ring-white/20 backdrop-blur-sm rounded-full px-2 py-1">
           <NavLink to="/home" className={claseLink}>
-            Home
+            <span aria-hidden="true">🏠</span> Inicio
           </NavLink>
           <NavLink to="/menu" className={claseLink}>
-            Menú
+            <span aria-hidden="true">🍕</span> Menú
           </NavLink>
-          <NavLink to="/mis-pedidos" className={claseLink}>Mis Pedidos</NavLink>
+          <NavLink to="/mis-pedidos" className={claseLink}>
+            <span aria-hidden="true">📦</span> Mis Pedidos
+          </NavLink>
           <NavLink to="/carrito" className={claseLink} aria-label="Ver carrito">
             🛒
             <BadgeCarrito key={cantidadItems} cantidadItems={cantidadItems} />
@@ -88,6 +90,7 @@ function Navbar({ usuario, onLogout }) {
               to="/admin/productos"
               className="ml-1 text-sm bg-white text-orange-600 px-3 py-1.5 rounded-full font-bold shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95"
             >
+              <span aria-hidden="true" className="mr-1">⚙️</span>
               Panel Admin
             </NavLink>
           )}
@@ -109,6 +112,7 @@ function Navbar({ usuario, onLogout }) {
               to="/login"
               className="ml-1 text-sm bg-white text-orange-600 px-4 py-2 rounded-full font-bold shadow-md shadow-black/10 transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95"
             >
+              <span aria-hidden="true" className="mr-1">🔑</span>
               Login
             </NavLink>
           )}

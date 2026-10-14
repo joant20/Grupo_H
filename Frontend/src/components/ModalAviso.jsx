@@ -1,3 +1,10 @@
+/**
+ * MODAL DE AVISO (éxito / error / información)
+ *
+ * Caja de diálogo simple que usa el contexto de avisos para informar al
+ * usuario lo que pasó (por ejemplo "Pedido realizado").
+ * El color y el icono cambian según el tipo de aviso.
+ */
 function ModalAviso({ titulo = "Aviso", mensaje, tipo = "info", onCerrar }) {
   const estilos = {
     exito: {
