@@ -152,6 +152,9 @@ const crearPedidoInvitado = async (req, res) => {
         res.status(201).json(nuevoPedido);
 
     } catch (error) {
+        if (error.name === 'ValidationError') {
+        return res.status(400).json({ mensaje: 'Datos inválidos', error: error.message });
+        }
         res.status(500).json({ mensaje: 'Error al crear el pedido', error: error.message });
     }
 };

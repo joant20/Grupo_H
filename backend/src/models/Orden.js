@@ -110,6 +110,8 @@ const ordenSchema = mongoose.Schema({
     metodoPago :{
         type:String,
         required:true,
+        lowercase: true,
+        trim: true,
         enum:['efectivo','tarjeta','transferencia']
     },
     estado:{
